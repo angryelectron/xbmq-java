@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.angryelectron;
+package com.angryelectron.xbmq;
 
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
@@ -14,24 +14,35 @@ import org.eclipse.paho.client.mqttv3.MqttException;
  *
  * @author abythell
  */
-public class XbmqConfig {
+public class Xbmq {
+    
     private XBeeDevice xbee;
     private MqttClient mqtt;
     private String rootTopic;
     private String clientId;
-      
-    void openXBee(String port, int baud) throws XBeeException {
-        xbee = new XBeeDevice(port, baud);
-        xbee.open();
+    
+    private Xbmq(){}
+     
+    private static class SingletonHelper{
+        private static final Xbmq INSTANCE = new Xbmq();
+    }
+     
+    public static Xbmq getInstance(){
+        return SingletonHelper.INSTANCE;
     }
     
-    void openMqtt(String broker, String rootTopic) throws MqttException {
+    public void connect(int baud, String port, String broker, String rootTopic) throws XBeeException, MqttException {   
+        /**
+         * Open XBee first so we can pass the 64-bit address as the client ID
+         * to MQTT.
+         */
+        xbee = new XBeeDevice(port, baud);
+        xbee.open();
         this.rootTopic = rootTopic;        
-        getClientId();
-        mqtt = new MqttClient(broker, clientId); 
+        mqtt = new MqttClient(broker, getClientId()); 
         mqtt.connect();
     }
-            
+    
     /**
      * Get Mqtt Client ID.
      * @return The MAC address of the XBee radio attached to the gateway.
@@ -43,15 +54,16 @@ public class XbmqConfig {
         return clientId;
     }
     
-    XBeeDevice getXBee() {
+    public XBeeDevice getXBee() {
         return xbee;
     }
     
-    MqttClient getMqttClient() {
+    public MqttClient getMqttClient() {
         return mqtt;
     }
     
-    XbmqMessage newMessage() {
-        return new XbmqMessage(this);
+    public String getRootTopic() {
+        return this.rootTopic;
     }
+
 }
