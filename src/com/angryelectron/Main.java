@@ -5,11 +5,16 @@
  */
 package com.angryelectron;
 
+import com.angryelectron.xbmq.XbmqSampleReceiveListener;
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqDataReceiveListener;
-import com.angryelectron.xbmq.XbmqMessage;
+import com.angryelectron.xbmq.XbmqMqttCallback;
+import com.angryelectron.xmbq.message.MqttBaseMessage;
+import com.angryelectron.xmbq.message.MqttDataMessage;
+import com.angryelectron.xmbq.message.MqttIOMessage;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
@@ -27,15 +32,27 @@ public class Main {
     public static void main(String[] args) throws XBeeException, MqttException {
 
         Xbmq xbmq = Xbmq.getInstance();
-        xbmq.connect(9600, "/dev/ttyUSB0", "tcp://iot.eclipse.org:1883", "zttest");
-        
+        xbmq.connect();
+
+        /**
+         * Setup listeners for unsolicited packets from the XBee network.
+         */
         XBeeDevice xbee = xbmq.getXBee();
         xbee.addDataListener(new XbmqDataReceiveListener());
         xbee.addIOSampleListener(new XbmqSampleReceiveListener());
         
-        MqttClient mqtt = xbmq.getMqttClient();
-        mqtt.setCallback(new XbmqCallback());
+        /**
+         * Subscribe to topics.
+         */
+        String[] topics = {
+            MqttDataMessage.getSubscriptionTopic(),            
+        };
+        int[] qos = {0};
         
+        MqttAsyncClient mqtt = xbmq.getMqttClient();
+        mqtt.setCallback(new XbmqMqttCallback());
+        mqtt.subscribe(topics, qos);
+
     }
-    
+
 }

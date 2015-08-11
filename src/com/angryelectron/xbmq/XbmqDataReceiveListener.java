@@ -5,8 +5,12 @@
  */
 package com.angryelectron.xbmq;
 
+import com.angryelectron.xmbq.message.MqttDataMessage;
 import com.digi.xbee.api.listeners.IDataReceiveListener;
 import com.digi.xbee.api.models.XBeeMessage;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.eclipse.paho.client.mqttv3.MqttException;
 
 /**
  *
@@ -16,7 +20,12 @@ public class XbmqDataReceiveListener implements IDataReceiveListener {
 
     @Override
     public void dataReceived(XBeeMessage xbm) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
+        MqttDataMessage message = new MqttDataMessage(xbm);
+        try {
+            message.send();
+        } catch (MqttException ex) {
+            Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
+        }
+        
+    }       
 }

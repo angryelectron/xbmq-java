@@ -3,10 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.angryelectron;
+package com.angryelectron.xbmq;
 
-import com.angryelectron.xbmq.Xbmq;
-import com.angryelectron.xbmq.XbmqMessage;
+import com.angryelectron.xmbq.message.MqttIOMessage;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.io.IOLine;
 import com.digi.xbee.api.io.IOSample;
@@ -22,40 +21,33 @@ import org.eclipse.paho.client.mqttv3.MqttException;
  *
  * @author abythell
  */
-class XbmqSampleReceiveListener implements IIOSampleReceiveListener {
-
-    private static final Xbmq xbmq = Xbmq.getInstance();
-
+public class XbmqSampleReceiveListener implements IIOSampleReceiveListener {
+    
     @Override
-    public void ioSampleReceived(RemoteXBeeDevice rxbd, IOSample ios) {
-        HashMap<IOLine, IOValue> ioValues = new HashMap<>();
-
+    public void ioSampleReceived(RemoteXBeeDevice rxbd, IOSample ios) {        
         if (ios.hasDigitalValues()) {
             HashMap<IOLine, IOValue> digitalValues = ios.getDigitalValues();
             for (Map.Entry<IOLine, IOValue> entry : digitalValues.entrySet()) {
                 Integer value = entry.getValue().equals(IOValue.HIGH) ? 1 : 0;
-                XbmqMessage message = XbmqMessage.createIOResponse(
-                        rxbd.get64BitAddress(), entry.getKey(), value);
+                MqttIOMessage message = new MqttIOMessage(rxbd.get64BitAddress(), entry.getKey(), value);
                 try {
-                    message.publish();
+                    message.send();
                 } catch (MqttException ex) {
                     Logger.getLogger(XbmqSampleReceiveListener.class.getName()).log(Level.ERROR, ex);
                 }
             }
         }
-
         if (ios.hasAnalogValues()) {
             HashMap<IOLine, Integer> analogValues = ios.getAnalogValues();
             for (Map.Entry<IOLine, Integer> entry : analogValues.entrySet()) {
-                XbmqMessage message = XbmqMessage.createIOResponse(
+                MqttIOMessage message = new MqttIOMessage(
                         rxbd.get64BitAddress(), entry.getKey(), entry.getValue());
                 try {
-                    message.publish();
+                    message.send();
                 } catch (MqttException ex) {
                     Logger.getLogger(XbmqSampleReceiveListener.class.getName()).log(Level.ERROR, ex);
                 }
             }
-
         }
 
     }

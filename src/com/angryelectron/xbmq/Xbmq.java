@@ -7,7 +7,8 @@ package com.angryelectron.xbmq;
 
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
-import org.eclipse.paho.client.mqttv3.MqttClient;
+import com.digi.xbee.api.models.XBee64BitAddress;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 /**
@@ -17,9 +18,9 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 public class Xbmq {
     
     private XBeeDevice xbee;
-    private MqttClient mqtt;
+    private MqttAsyncClient mqtt;
     private String rootTopic;
-    private String clientId;
+    private String gatewayId;
     
     private Xbmq(){}
      
@@ -30,40 +31,53 @@ public class Xbmq {
     public static Xbmq getInstance(){
         return SingletonHelper.INSTANCE;
     }
-    
+            
     public void connect(int baud, String port, String broker, String rootTopic) throws XBeeException, MqttException {   
+                        
         /**
          * Open XBee first so we can pass the 64-bit address as the client ID
-         * to MQTT.
+         * to MQTT.  
          */
-        xbee = new XBeeDevice(port, baud);
-        xbee.open();
+        xbee = new XBeeDevice(port, baud);        
+        xbee.open();        
         this.rootTopic = rootTopic;        
-        mqtt = new MqttClient(broker, getClientId()); 
-        mqtt.connect();
+        mqtt = new MqttAsyncClient(broker, getGatewayId()); 
+        mqtt.connect().waitForCompletion();
+    }
+    
+    public void connect() throws XBeeException, MqttException {
+        XbmqConfig config = new XbmqConfig();
+        connect(config.getXBeeBaud(), config.getXBeePort(), config.getBroker(), config.getRootTopic());
     }
     
     /**
      * Get Mqtt Client ID.
      * @return The MAC address of the XBee radio attached to the gateway.
      */
-    String getClientId() {
-        if ((clientId == null) || clientId.isEmpty()) {
-            clientId = xbee.get64BitAddress().toString();
+    public String getGatewayId() {
+        if (xbee == null) {
+            return XBee64BitAddress.UNKNOWN_ADDRESS.toString();
         }
-        return clientId;
+        if ((gatewayId == null) || gatewayId.isEmpty()) {
+            gatewayId = xbee.get64BitAddress().toString();
+        }
+        return gatewayId;
     }
     
-    public XBeeDevice getXBee() {
+    public XBeeDevice getXBee() {        
         return xbee;
     }
     
-    public MqttClient getMqttClient() {
+    public MqttAsyncClient getMqttClient() {              
         return mqtt;
     }
     
     public String getRootTopic() {
-        return this.rootTopic;
+        if (rootTopic == null) {
+            return "";
+        } else {
+            return rootTopic;
+        }
     }
 
 }
