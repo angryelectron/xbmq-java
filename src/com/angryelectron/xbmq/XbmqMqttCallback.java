@@ -5,6 +5,7 @@
  */
 package com.angryelectron.xbmq;
 
+import com.angryelectron.xmbq.message.XBeeAtMessage;
 import com.angryelectron.xmbq.message.XBeeDataMessage;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -27,6 +28,9 @@ public class XbmqMqttCallback implements MqttCallback {
     public void messageArrived(String topic, MqttMessage mm) throws Exception {
         if (XBeeDataMessage.isDataTopic(topic)) {
             XBeeDataMessage message = new XBeeDataMessage(topic, mm);
+            message.send();
+        } else if (XBeeAtMessage.isAtTopic(topic)) {
+            XBeeAtMessage message = new XBeeAtMessage(topic, mm);
             message.send();
         }
     }

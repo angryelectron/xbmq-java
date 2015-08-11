@@ -5,22 +5,24 @@
  */
 package com.angryelectron.xmbq.message;
 
-import com.digi.xbee.api.models.XBeeMessage;
+import static com.angryelectron.xmbq.message.MqttBaseMessage.SEPARATOR;
+import com.digi.xbee.api.models.XBee64BitAddress;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
  *
  * @author abythell
  */
-public class MqttDataMessage extends MqttBaseMessage {
+public class MqttAtMessage extends MqttBaseMessage {
     
-    static final String PUBTOPIC = "dataOut";        
-    static final String SUBTOPIC = "dataIn";
+    public static String PUBTOPIC = "atOut";
+    public static String SUBTOPIC = "atIn";
     
-    public MqttDataMessage(XBeeMessage message) {        
-        this.message.setPayload(message.getData());
-        this.address = message.getDevice().get64BitAddress();        
+    public MqttAtMessage(XBee64BitAddress address, String command, String value) {
+        this.address = address;
+        this.message = new MqttMessage((command + "=" + value).getBytes());        
     }
-                        
+    
     @Override
     String getPublishTopic() {
         StringBuilder builder = new StringBuilder(super.getPublishTopic());        
@@ -37,5 +39,5 @@ public class MqttDataMessage extends MqttBaseMessage {
         builder.append(SUBTOPIC);        
         return builder.toString();
     }
-                        
+    
 }

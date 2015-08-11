@@ -20,7 +20,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  */
 public class XBeeDataMessage {
 
-    public static final String TOPIC = "dataIn";
     private final MqttMessage message;
     private final String topic;
     private final Xbmq xbmq;
@@ -34,21 +33,20 @@ public class XBeeDataMessage {
     }
 
     public static boolean isDataTopic(String topic) {
-        return topic.contains(TOPIC);
+        return topic.contains(MqttDataMessage.SUBTOPIC);
     }
-            
+
     public void send() throws XBeeException {
         Pattern pattern = Pattern.compile(xbmq.getRootTopic()
-                + "\\/[0-9a-fA-F]{16}\\/([0-9a-fA-F]{16})\\/" + TOPIC);
+                + "\\/[0-9a-fA-F]{16}\\/([0-9a-fA-F]{16})\\/" + MqttDataMessage.SUBTOPIC);
         Matcher matcher = pattern.matcher(this.topic);
         if (matcher.find()) {
-            XBee64BitAddress address = new XBee64BitAddress(matcher.group(1));            
-            RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
+        XBee64BitAddress address = new XBee64BitAddress(matcher.group(1));
+        RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
             xbee.sendDataAsync(rxd, message.getPayload());
         } else {
             throw new XBeeException("Invalid topic: " + topic);
         }
 
     }
-
 }
