@@ -11,6 +11,7 @@ import com.angryelectron.xmbq.message.MqttDiscoveryMessage.Format;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.XBeeNetwork;
 import com.digi.xbee.api.exceptions.XBeeException;
+import com.digi.xbee.api.models.XBeeProtocol;
 import java.nio.charset.StandardCharsets;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -48,19 +49,6 @@ public class XBeeDiscoveryMessage {
      * Discover all remote XBee devices on the same network as the local XBee
      * device.
      *
-     * Note from XBee docs: "Note that DigiMesh/DigiPoint devices are blocked
-     * until the discovery time configured (NT parameter) has elapsed, so if you
-     * try to get/set any parameter during the discovery process you will
-     * receive a timeout exception."
-     *
-     * To avoid timeouts during the discovery process, block until discovery is
-     * complete. Any MQTT messages that arrive while discovery is running will
-     * be queued by the MQTT framework.
-     *
-     * Even though this is blocking, and synchronous discovery is possible, the
-     * discovered devices are collected and published asynchronously by
-     * {@link com.angryelectron.xbmq.listener.XbmqDiscoveryListener}.
-     *
      * @see <a href="https://docs.digi.com/display/XBJLIB/Discover+the+network">
      * https://docs.digi.com/display/XBJLIB/Discover+the+network</a>
      * @throws XBeeException
@@ -68,19 +56,33 @@ public class XBeeDiscoveryMessage {
     public void send() throws XBeeException {
         XbmqDiscoveryListener listener = new XbmqDiscoveryListener(format);
         XBeeNetwork network = xbee.getNetwork();
-        if (!network.isDiscoveryRunning()) {
-            network.setDiscoveryTimeout(15000);
-            network.addDiscoveryListener(listener);
-            network.startDiscoveryProcess();
-        }
-        while (network.isDiscoveryRunning()) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ex) {
-                //ignore
+        network.setDiscoveryTimeout(15000);
+        network.addDiscoveryListener(listener);
+        network.startDiscoveryProcess();
+
+        /**
+         * From XBee docs: "Note that DigiMesh/DigiPoint devices are blocked
+         * until the discovery time configured (NT parameter) has elapsed, so if
+         * you try to get/set any parameter during the discovery process you
+         * will receive a timeout exception".
+         *
+         * So if this type of device is in use, block until discovery completes.
+         * This will cause the MQTT framework to queue new incoming requests and
+         * process them only once this method is finished, thereby avoiding
+         * concurrent XBee access.
+         *
+         */
+        XBeeProtocol protocol = xbee.getXBeeProtocol();
+        if (protocol.equals(XBeeProtocol.DIGI_MESH) || protocol.equals(XBeeProtocol.DIGI_POINT)) {
+            while (network.isDiscoveryRunning()) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ex) {
+                    //ignore
+                }
             }
+            network.removeDiscoveryListener(listener);
         }
-        network.removeDiscoveryListener(listener);
     }
 
 }
