@@ -16,13 +16,21 @@ public class MqttDiscoveryMessage extends MqttBaseMessage {
     
     static final String PUBTOPIC = "discoveryResponse";        
     static final String SUBTOPIC = "discoveryRequest";
-    public static enum Format {JSON};
+    
+    public static enum Format {JSON, CSV, XML};
     
     public MqttDiscoveryMessage(List<RemoteXBeeDevice> devices, Format format) {                
         switch (format) {
+            case CSV:
+                this.message.setPayload(toCSV(devices).getBytes());
+                break;
+            case XML:
+                this.message.setPayload(toXML(devices).getBytes());
+                break;
             case JSON:
             default:
                 this.message.setPayload(toJSON(devices).getBytes());
+                break;
         }
         
     }
@@ -65,6 +73,29 @@ public class MqttDiscoveryMessage extends MqttBaseMessage {
         }        
         builder.append("]}");
         return builder.toString();
+    }
+    
+    private String toCSV(List<RemoteXBeeDevice> devices) {
+        StringBuilder builder = new StringBuilder();        
+        for (int i=0; i < devices.size(); i++) {            
+            builder.append(devices.get(i).get64BitAddress().toString());            
+            if (i != devices.size() - 1) {
+                builder.append(",");
+            }
+        }                
+        return builder.toString();
+    }
+
+    private String toXML(List<RemoteXBeeDevice> devices) {
+        StringBuilder builder = new StringBuilder("<devices>");        
+        for (RemoteXBeeDevice device : devices) {
+            builder.append("<address>");
+            builder.append(device.get64BitAddress().toString());
+            builder.append("</address>");
+        }        
+        builder.append("</devices>");
+        return builder.toString();
+
     }
                         
 }

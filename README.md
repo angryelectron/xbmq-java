@@ -35,7 +35,8 @@ following topics and conventions.
 
 Example: example/0013A200408DE1FE/discoveryRequest
 
-Message: response format.  Currently only "JSON" is supported.
+Message: response format.  Supported formats are:  JSON, XML, CSV.  JSON is the
+default and will be used if an invalid format is given.
 
 Publish a message to this topic to initiate the discovery process (ND) on the 
 gateway.  This is an "expensive" request as it can block the gateway for up to
@@ -45,8 +46,9 @@ gateway.  This is an "expensive" request as it can block the gateway for up to
 
 Example: example/0013A200408DE1FE/discoveryResponse
 
-Message: a JSON-formatted list containing the 64-bit device address of all
-discovered devices.
+Message: A formatted list containing the 64-bit device address of all
+discovered devices.  Format will be JSON, XML, or CSV depending on the message
+used to make the request.
 
 Subscribe to this topic prior to publishing a discoveryRequest to receive the
 results of the discovery.
