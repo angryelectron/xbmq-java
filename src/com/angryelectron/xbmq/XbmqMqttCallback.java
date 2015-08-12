@@ -5,6 +5,7 @@
  */
 package com.angryelectron.xbmq;
 
+import com.angryelectron.xmbq.message.XBeeDiscoveryMessage;
 import com.angryelectron.xmbq.message.XBeeAtMessage;
 import com.angryelectron.xmbq.message.XBeeDataMessage;
 import org.apache.log4j.Level;
@@ -31,6 +32,9 @@ public class XbmqMqttCallback implements MqttCallback {
             message.send();
         } else if (XBeeAtMessage.isAtTopic(topic)) {
             XBeeAtMessage message = new XBeeAtMessage(topic, mm);
+            message.send();
+        } else if (XBeeDiscoveryMessage.isDiscoveryTopic(topic)) {
+            XBeeDiscoveryMessage message = new XBeeDiscoveryMessage(topic, mm);
             message.send();
         }
     }
