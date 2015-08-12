@@ -5,22 +5,21 @@ and write data, get and set AT parameters from any MQTT client.
 
 Hardware
 --------
-Xbmq will run on any device that has a serial port, network connection, and Java
-7.  It is intended to be used on low-power devices such as BeagleBone and 
+Xbmq will run on any device that has a serial port, network connection, and Java7.  
+It is intended to be used on low-power devices such as BeagleBone and 
 RaspberryPi, but should run on any Java-enabled device with networking.
 
 Configuration
 -------------
 Configure the gateway by modifying xbmq.properties.  If xmbq.properties is not 
-found, the default value () will be used.
+found, the default values () will be used.
 
-* port - serial port for local XBee connection (/dev/tty/USB0).
-* baud - XBee baud rate (9600).
-* rootTopic - a top-level MQTT topic under which all other topics will be created.
-* broker - an MQTT broker (tcp://iot.eclipse.org:1883)
+* `port` - serial port for local XBee connection (/dev/tty/USB0).
+* `baud` - XBee baud rate (9600).
+* `rootTopic` - a top-level MQTT topic under which all other topics will be created.
+* `broker` - an MQTT broker (tcp://iot.eclipse.org:1883)
 
-
-Ensure all XBees accessible from the gateway use the same network/PAN ID and that
+Ensure that all XBees accessible from the gateway use the same network/PAN ID and that
 the local XBee is in API mode (AP=2).
 
 MQTT Topics
@@ -118,3 +117,8 @@ an xbee.  `ioline` is one of the enumeration types from com.digi.xbee.api.io.IOL
 * DIO19
 
 Note: To change the value or mode of an IO pin, see the [atIn](#atIn) topic.
+
+Troubleshooting
+---------------
+See xmbq.log.  Xbmq does not currently provide very good feedback about errors 
+to MQTT clients.

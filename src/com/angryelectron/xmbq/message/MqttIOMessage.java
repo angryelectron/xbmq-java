@@ -20,14 +20,10 @@ public class MqttIOMessage extends MqttBaseMessage {
     public MqttIOMessage(XBee64BitAddress address, IOLine line, Integer value) {        
         this.address = address;
         this.line = line;
-        this.message.setPayload(new byte[]{value.byteValue()});        
+        this.message.setPayload(value.toString().getBytes());        
     }
                 
-    /**
-     * Topic format:  [XBee64BitAddress]/[XBee64BitAddress]/io/[IOLine], where
-     * the first address is the gateway and the second address is the device that
-     * issued the sample.  
-     * 
+    /**     
      * Note: while the enum is DIO0_AD, the name is DIO0/AD.  Slashes must be
      * replaced (with underscores) since the slash is the MQTT topic separator.
      
