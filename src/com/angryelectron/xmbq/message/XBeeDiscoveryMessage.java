@@ -21,13 +21,13 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  * @author abythell
  */
 public class XBeeDiscoveryMessage {
-    
+
     private final String topic;
     private final Xbmq xbmq;
     private final XBeeDevice xbee;
     private Format format;
 
-    public XBeeDiscoveryMessage(String topic, MqttMessage mm) {        
+    public XBeeDiscoveryMessage(String topic, MqttMessage mm) {
         this.topic = topic;
         this.xbmq = Xbmq.getInstance();
         this.xbee = xbmq.getXBee();
@@ -44,11 +44,43 @@ public class XBeeDiscoveryMessage {
         return topic.contains(MqttDiscoveryMessage.SUBTOPIC);
     }
 
+    /**
+     * Discover all remote XBee devices on the same network as the local XBee
+     * device.
+     *
+     * Note from XBee docs: "Note that DigiMesh/DigiPoint devices are blocked
+     * until the discovery time configured (NT parameter) has elapsed, so if you
+     * try to get/set any parameter during the discovery process you will
+     * receive a timeout exception."
+     *
+     * To avoid timeouts during the discovery process, block until discovery is
+     * complete. Any MQTT messages that arrive while discovery is running will
+     * be queued by the MQTT framework.
+     *
+     * Even though this is blocking, and synchronous discovery is possible, the
+     * discovered devices are collected and published asynchronously by
+     * {@link com.angryelectron.xbmq.listener.XbmqDiscoveryListener}.
+     *
+     * @see <a href="https://docs.digi.com/display/XBJLIB/Discover+the+network">
+     * https://docs.digi.com/display/XBJLIB/Discover+the+network</a>
+     * @throws XBeeException
+     */
     public void send() throws XBeeException {
+        XbmqDiscoveryListener listener = new XbmqDiscoveryListener(format);
         XBeeNetwork network = xbee.getNetwork();
-        network.setDiscoveryTimeout(15000);
-        network.addDiscoveryListener(new XbmqDiscoveryListener(format));
-        network.startDiscoveryProcess();
+        if (!network.isDiscoveryRunning()) {
+            network.setDiscoveryTimeout(15000);
+            network.addDiscoveryListener(listener);
+            network.startDiscoveryProcess();
+        }
+        while (network.isDiscoveryRunning()) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                //ignore
+            }
+        }
+        network.removeDiscoveryListener(listener);
     }
 
 }

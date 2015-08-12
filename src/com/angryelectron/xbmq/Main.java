@@ -6,7 +6,6 @@
 package com.angryelectron.xbmq;
 
 import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
-import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.listener.XbmqDataReceiveListener;
 import com.angryelectron.xbmq.listener.XbmqMqttCallback;
 import com.angryelectron.xmbq.message.MqttAtMessage;

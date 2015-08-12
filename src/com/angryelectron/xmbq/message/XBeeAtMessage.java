@@ -36,8 +36,7 @@ public class XBeeAtMessage {
             "ND", //node discovery - handled by other mechanisms
             "CB", //commission button - CB[N]
             "AT", //not supported by the XBee API
-            "AP", //won't work if API mode is disabled
-            "ID"  //remote must match local ID  
+            "AP" //won't work if API mode is disabled            
     ));
     private final Set<String> executionCommands = new HashSet<>(Arrays.asList(
             "AC", //apply changes
@@ -74,6 +73,9 @@ public class XBeeAtMessage {
          */
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);        
         String msg = new String(message.getPayload(), StandardCharsets.UTF_8);
+        if (msg.isEmpty()) {
+            throw new XBeeException("Message cannot be empty - ignoring.");
+        }
         String[] param = msg.split("=");
         if (unsupportedCommands.contains(param[0])) {
             Logger.getLogger(this.getClass()).log(Level.WARN, "Unsupported command: " + msg);

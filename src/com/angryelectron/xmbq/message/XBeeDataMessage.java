@@ -43,7 +43,7 @@ public class XBeeDataMessage {
         if (matcher.find()) {
         XBee64BitAddress address = new XBee64BitAddress(matcher.group(1));
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
-            xbee.sendDataAsync(rxd, message.getPayload());
+            xbee.sendData(rxd, message.getPayload());
         } else {
             throw new XBeeException("Invalid topic: " + topic);
         }
