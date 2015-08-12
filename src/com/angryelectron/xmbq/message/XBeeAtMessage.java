@@ -6,6 +6,7 @@
 package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.Xbmq;
+import com.angryelectron.xbmq.XbmqUtils;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
@@ -107,18 +108,10 @@ public class XBeeAtMessage {
                     parameter, rxd.getNodeID());
             msg.send();
         } else {
-            String result = bytesToString(rxd.getParameter(parameter));
+            String result = XbmqUtils.bytesToString(rxd.getParameter(parameter));
             MqttAtMessage msg = new MqttAtMessage(rxd.get64BitAddress(), parameter, result);
             msg.send();
         }
     }
-
-    private String bytesToString(byte[] bytes) {
-        StringBuilder builder = new StringBuilder();
-        for (Byte b : bytes) {
-            builder.append(String.format("%02x", b));
-        }
-        return builder.toString();
-    }
-
+    
 }
