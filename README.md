@@ -31,6 +31,17 @@ following topics and conventions.
 * `gw` - the 64-bit address of the local XBee attached to the gateway.  Eg. 0013A200408DE1FE
 * `xbee` - the 64-bit address of the remote XBee.  Eg. 0013A200408B1F78
 
+### rootTopic/gw/online
+
+Example: example/0013A200408DE1FE/online
+
+Message: 1 if the gateway is online, 0 if the gateway is offline.
+
+Subscribe to receive online status messages.  Messages for this topic are retained.
+This is the last will and testament, so online will be 0 if the gateway is not
+running for whatever reason.
+
+
 ### rootTopic/gw/discoveryRequest
 
 Example: example/0013A200408DE1FE/discoveryRequest
