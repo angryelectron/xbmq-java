@@ -9,7 +9,9 @@ import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.models.XBee64BitAddress;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  *
@@ -24,6 +26,8 @@ public class Xbmq {
     
     private Xbmq(){}
      
+    private static final String STATUSTOPIC = "online";
+    
     private static class SingletonHelper{
         private static final Xbmq INSTANCE = new Xbmq();
     }
@@ -34,15 +38,38 @@ public class Xbmq {
             
     public void connect(int baud, String port, String broker, String rootTopic) throws XBeeException, MqttException {   
                         
+        this.rootTopic = rootTopic;
+        
         /**
          * Open XBee first so we can pass the 64-bit address as the client ID
          * to MQTT.  
          */
         xbee = new XBeeDevice(port, baud);        
-        xbee.open();        
-        this.rootTopic = rootTopic;        
+        xbee.open();    
+        String gateway = getGatewayId();
+        
+        /**
+         * Setup last will and testament.
+         */
+        StringBuilder topicBuilder = new StringBuilder(rootTopic);
+        topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
+        topicBuilder.append(gateway);
+        topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
+        topicBuilder.append(STATUSTOPIC);
+        String lwtTopic = topicBuilder.toString();
+
+        /**
+         * Connect.
+         */
+        MqttConnectOptions options = new MqttConnectOptions();
+        options.setWill(lwtTopic, "0".getBytes(), 0, true);        
         mqtt = new MqttAsyncClient(broker, getGatewayId()); 
-        mqtt.connect().waitForCompletion();
+        mqtt.connect(options).waitForCompletion();
+        
+        /**
+         * Set online status
+         */
+        mqtt.publish(lwtTopic, "1".getBytes(), 0, true);
     }
     
     public void connect() throws XBeeException, MqttException {
