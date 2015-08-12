@@ -5,6 +5,7 @@
  */
 package com.angryelectron.xbmq;
 
+import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.io.IOSample;

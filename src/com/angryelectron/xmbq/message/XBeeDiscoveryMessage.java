@@ -6,7 +6,7 @@
 package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.Xbmq;
-import com.angryelectron.xbmq.XbmqDiscoveryListener;
+import com.angryelectron.xbmq.listener.XbmqDiscoveryListener;
 import com.angryelectron.xmbq.message.MqttDiscoveryMessage.Format;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.XBeeNetwork;

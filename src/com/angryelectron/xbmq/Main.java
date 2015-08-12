@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.angryelectron;
+package com.angryelectron.xbmq;
 
-import com.angryelectron.xbmq.XbmqSampleReceiveListener;
+import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.angryelectron.xbmq.Xbmq;
-import com.angryelectron.xbmq.XbmqDataReceiveListener;
-import com.angryelectron.xbmq.XbmqMqttCallback;
+import com.angryelectron.xbmq.listener.XbmqDataReceiveListener;
+import com.angryelectron.xbmq.listener.XbmqMqttCallback;
 import com.angryelectron.xmbq.message.MqttAtMessage;
 import com.angryelectron.xmbq.message.MqttDataMessage;
 import com.angryelectron.xmbq.message.MqttDiscoveryMessage;

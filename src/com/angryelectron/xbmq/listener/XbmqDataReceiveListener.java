@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.angryelectron.xbmq;
+package com.angryelectron.xbmq.listener;
 
 import com.angryelectron.xmbq.message.MqttDataMessage;
 import com.digi.xbee.api.listeners.IDataReceiveListener;
