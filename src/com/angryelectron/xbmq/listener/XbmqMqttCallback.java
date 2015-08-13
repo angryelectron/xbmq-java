@@ -8,6 +8,7 @@ package com.angryelectron.xbmq.listener;
 import com.angryelectron.xmbq.message.XBeeDiscoveryMessage;
 import com.angryelectron.xmbq.message.XBeeAtMessage;
 import com.angryelectron.xmbq.message.XBeeDataMessage;
+import com.angryelectron.xmbq.message.XBeeISMessage;
 import com.digi.xbee.api.exceptions.XBeeException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -40,17 +41,17 @@ public class XbmqMqttCallback implements MqttCallback {
     @Override
     public void messageArrived(String topic, MqttMessage mm) throws Exception {
         try {
-            if (XBeeDataMessage.isDataTopic(topic)) {
-                Logger.getLogger(this.getClass()).log(Level.DEBUG, "Received dataIn message.");
+            if (XBeeDataMessage.isDataTopic(topic)) {                
                 XBeeDataMessage message = new XBeeDataMessage(topic, mm);
                 message.send();
-            } else if (XBeeAtMessage.isAtTopic(topic)) {
-                Logger.getLogger(this.getClass()).log(Level.DEBUG, "Received atIn message.");
+            } else if (XBeeAtMessage.isAtTopic(topic)) {                
                 XBeeAtMessage message = new XBeeAtMessage(topic, mm);
                 message.send();
-            } else if (XBeeDiscoveryMessage.isDiscoveryTopic(topic)) {
-                Logger.getLogger(this.getClass()).log(Level.DEBUG, "Received discoveryRequest message.");
+            } else if (XBeeDiscoveryMessage.isDiscoveryTopic(topic)) {                
                 XBeeDiscoveryMessage message = new XBeeDiscoveryMessage(topic, mm);
+                message.send();
+            } else if (XBeeISMessage.isISTopic(topic)) {
+                XBeeISMessage message = new XBeeISMessage(topic, mm);
                 message.send();
             }
         } catch (XBeeException | MqttException ex) {

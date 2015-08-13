@@ -131,6 +131,15 @@ an xbee.  `ioline` is one of the enumeration types from com.digi.xbee.api.io.IOL
 
 Note: To change the value or mode of an IO pin, see the [atIn](#atIn) topic.
 
+### rootTopic/gw/xbee/ioUpdate
+
+Example: example/0013A200408DE1FE/0013A200408B1F78/ioUpdate
+
+Message: Empty.
+
+Publishing to this topic will force the XBee to update the status of all enabled
+IO pins.  Results are published to the respective IO topics.
+
 Troubleshooting
 ---------------
 See xmbq.log.  Xbmq does not currently provide very good feedback about errors 

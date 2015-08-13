@@ -9,8 +9,10 @@ import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.angryelectron.xbmq.listener.XbmqDataReceiveListener;
 import com.angryelectron.xbmq.listener.XbmqMqttCallback;
 import com.angryelectron.xmbq.message.MqttAtMessage;
+import com.angryelectron.xmbq.message.MqttBaseMessage;
 import com.angryelectron.xmbq.message.MqttDataMessage;
 import com.angryelectron.xmbq.message.MqttDiscoveryMessage;
+import com.angryelectron.xmbq.message.MqttIOMessage;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
@@ -45,9 +47,10 @@ public class Main {
         String[] topics = {
             MqttDataMessage.getSubscriptionTopic(),   
             MqttAtMessage.getSubscriptionTopic(),
-            MqttDiscoveryMessage.getSubscriptionTopic()
+            MqttDiscoveryMessage.getSubscriptionTopic(),
+            MqttIOMessage.getSubscriptionTopic()
         };
-        int[] qos = {0, 0, 0};
+        int[] qos = {0, 0, 0, 0};
         
         MqttAsyncClient mqtt = xbmq.getMqttClient();
         mqtt.setCallback(new XbmqMqttCallback());

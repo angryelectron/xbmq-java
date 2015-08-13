@@ -7,6 +7,7 @@ package com.angryelectron.xmbq.message;
 
 import com.digi.xbee.api.io.IOLine;
 import com.digi.xbee.api.models.XBee64BitAddress;
+import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  *
@@ -14,7 +15,8 @@ import com.digi.xbee.api.models.XBee64BitAddress;
  */
 public class MqttIOMessage extends MqttBaseMessage {
         
-    private static final String TOPIC = "io";    
+    static final String PUBTOPIC = "io";    
+    static final String SUBTOPIC = "ioUpdate";
     private final IOLine line;    
     
     public MqttIOMessage(XBee64BitAddress address, IOLine line, Integer value) {        
@@ -33,11 +35,19 @@ public class MqttIOMessage extends MqttBaseMessage {
     String getPublishTopic() {
         StringBuilder builder = new StringBuilder(super.getPublishTopic());
         builder.append(SEPARATOR);
-        builder.append(TOPIC);
+        builder.append(PUBTOPIC);
         builder.append(SEPARATOR);
-        builder.append(line.getName().replaceAll(SEPARATOR, "_"));
-        builder.append(SEPARATOR);
+        builder.append(line.getName().replaceAll(SEPARATOR, "_"));        
         return builder.toString();
     }
-        
+    
+    public static String getSubscriptionTopic() {        
+        StringBuilder builder = new StringBuilder(MqttBaseMessage.getSubscriptionTopic());        
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR); 
+        builder.append(MqttTopic.SINGLE_LEVEL_WILDCARD);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR); 
+        builder.append(SUBTOPIC);
+        return builder.toString();
+    }
+     
 }
