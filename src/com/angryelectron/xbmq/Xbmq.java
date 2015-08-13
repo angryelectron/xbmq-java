@@ -24,7 +24,7 @@ public class Xbmq {
     private String gatewayId;
     
     private Xbmq(){}         
-    
+
     private static class SingletonHelper{
         private static final Xbmq INSTANCE = new Xbmq();
     }
@@ -143,5 +143,11 @@ public class Xbmq {
             return rootTopic;
         }
     }
+    
+    void disconnect() throws MqttException {
+        xbee.close();
+        mqtt.disconnect();
+    }
+    
 
 }
