@@ -6,6 +6,7 @@
 package com.angryelectron.xmbq.message;
 
 import com.digi.xbee.api.models.XBeeMessage;
+import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  *
@@ -24,16 +25,16 @@ public class MqttDataMessage extends MqttBaseMessage {
     @Override
     String getPublishTopic() {
         StringBuilder builder = new StringBuilder(super.getPublishTopic());        
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(PUBTOPIC);        
         return builder.toString();
     }
     
     public static String getSubscriptionTopic() {
         StringBuilder builder = new StringBuilder(MqttBaseMessage.getSubscriptionTopic());
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append("+");
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(SUBTOPIC);        
         return builder.toString();
     }

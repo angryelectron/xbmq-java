@@ -34,10 +34,10 @@ public class MqttIOMessage extends MqttBaseMessage {
     @Override
     String getPublishTopic() {
         StringBuilder builder = new StringBuilder(super.getPublishTopic());
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(PUBTOPIC);
-        builder.append(SEPARATOR);
-        builder.append(line.getName().replaceAll(SEPARATOR, "_"));        
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
+        builder.append(line.getName().replaceAll(MqttTopic.TOPIC_LEVEL_SEPARATOR, "_"));        
         return builder.toString();
     }
     

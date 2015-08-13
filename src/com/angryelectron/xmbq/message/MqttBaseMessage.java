@@ -13,6 +13,7 @@ import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  *
@@ -23,8 +24,7 @@ public abstract class MqttBaseMessage {
     XBee64BitAddress address;
     MqttMessage message = new MqttMessage();
     
-    static Xbmq xbmq = Xbmq.getInstance();
-    final static String SEPARATOR = "/";   
+    static Xbmq xbmq = Xbmq.getInstance();    
     
     /**
      * Publish an MQTT message.
@@ -49,9 +49,9 @@ public abstract class MqttBaseMessage {
     String getPublishTopic() {
         StringBuilder builder = new StringBuilder();
         builder.append(xbmq.getRootTopic());
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(xbmq.getGatewayId());
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(address);        
         return builder.toString();
     } 
@@ -59,7 +59,7 @@ public abstract class MqttBaseMessage {
     public static String getSubscriptionTopic() {        
         StringBuilder builder = new StringBuilder();
         builder.append(xbmq.getRootTopic());
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(xbmq.getGatewayId());
         return builder.toString();
     }

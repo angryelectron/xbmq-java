@@ -7,6 +7,7 @@ package com.angryelectron.xmbq.message;
 
 import com.digi.xbee.api.RemoteXBeeDevice;
 import java.util.List;
+import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  *
@@ -44,9 +45,9 @@ public class MqttDiscoveryMessage extends MqttBaseMessage {
     String getPublishTopic() {
         StringBuilder builder = new StringBuilder();
         builder.append(xbmq.getRootTopic());
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(xbmq.getGatewayId());
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(PUBTOPIC);
         return builder.toString();
     }
@@ -54,9 +55,9 @@ public class MqttDiscoveryMessage extends MqttBaseMessage {
     public static String getSubscriptionTopic() {
         StringBuilder builder = new StringBuilder();
         builder.append(xbmq.getRootTopic());
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(xbmq.getGatewayId());
-        builder.append(SEPARATOR);
+        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(SUBTOPIC);
         return builder.toString();
     }
