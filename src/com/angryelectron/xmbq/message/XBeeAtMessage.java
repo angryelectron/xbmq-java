@@ -27,7 +27,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  * @author abythell
  */
 public class XBeeAtMessage implements XBeeMessage {
-    
+
     private final Set<String> unsupportedCommands = new HashSet<>(Arrays.asList(
             "ND", //node discovery - handled by other mechanisms
             "CB", //commission button - CB[N]
@@ -44,12 +44,12 @@ public class XBeeAtMessage implements XBeeMessage {
             "1S", //force sensors sample
             "CN" //exit command mode            
     ));
-    
+
     @Override
-    public void send(String topic, MqttMessage message) throws Exception {        
+    public void send(String topic, MqttMessage message) throws Exception {
         XBeeDevice xbee = Xbmq.getInstance().getXBee();
-        XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);        
-        RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);        
+        XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);
+        RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
         String msg = new String(message.getPayload(), StandardCharsets.UTF_8);
         if (msg.isEmpty()) {
             throw new XBeeException("Message cannot be empty - ignoring.");
@@ -77,19 +77,19 @@ public class XBeeAtMessage implements XBeeMessage {
         }
     }
 
-    private void getParameter(RemoteXBeeDevice rxd, String parameter) throws XBeeException, MqttException {        
+    private void getParameter(RemoteXBeeDevice rxd, String parameter) throws XBeeException, MqttException {
         if (executionCommands.contains(parameter)) {
             rxd.executeParameter(parameter);
-        } else if (parameter.toUpperCase().equals("NI")) {  
+        } else if (parameter.toUpperCase().equals("NI")) {
             rxd.readDeviceInfo();
-            MqttAtMessage msg = new MqttAtMessage(rxd.get64BitAddress(), 
+            MqttAtMessage msg = new MqttAtMessage();
+            msg.send(rxd.get64BitAddress(),
                     parameter, rxd.getNodeID());
-            msg.send();
         } else {
             String result = XbmqUtils.bytesToString(rxd.getParameter(parameter));
-            MqttAtMessage msg = new MqttAtMessage(rxd.get64BitAddress(), parameter, result);
-            msg.send();
+            MqttAtMessage msg = new MqttAtMessage();
+            msg.send(rxd.get64BitAddress(), parameter, result);
         }
     }
-    
+
 }

@@ -5,24 +5,29 @@
  */
 package com.angryelectron.xmbq.message;
 
+import com.angryelectron.xbmq.XbmqUtils;
 import com.digi.xbee.api.io.IOLine;
 import com.digi.xbee.api.models.XBee64BitAddress;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  *
  * @author abythell
  */
-public class MqttIOMessage extends MqttBaseMessage {
+public class MqttIOMessage implements MqttBaseMessage {
         
     static final String PUBTOPIC = "io";    
-    static final String SUBTOPIC = "ioUpdate";
-    private final IOLine line;    
+    static final String SUBTOPIC = "ioUpdate";    
+    private IOLine line;
     
-    public MqttIOMessage(XBee64BitAddress address, IOLine line, Integer value) {        
-        this.address = address;
+    public void send(XBee64BitAddress address, IOLine line, Integer value) throws MqttException {                
+        MqttMessage message = new MqttMessage(value.toString().getBytes());        
+        message.setRetained(true);
         this.line = line;
-        this.message.setPayload(value.toString().getBytes());        
+        String topic = getPublishTopic(address);
+        XbmqUtils.publishMqtt(topic, message);
     }
                 
     /**     
@@ -32,8 +37,8 @@ public class MqttIOMessage extends MqttBaseMessage {
      * @return Reply topic.
      */
     @Override
-    String getPublishTopic() {
-        StringBuilder builder = new StringBuilder(super.getPublishTopic());
+    public String getPublishTopic(XBee64BitAddress address) {
+        StringBuilder builder = new StringBuilder(XbmqUtils.getDeviceTopic(address));
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(PUBTOPIC);
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
@@ -41,8 +46,9 @@ public class MqttIOMessage extends MqttBaseMessage {
         return builder.toString();
     }
     
-    public static String getSubscriptionTopic() {        
-        StringBuilder builder = new StringBuilder(MqttBaseMessage.getSubscriptionTopic());        
+    @Override
+    public String getSubscriptionTopic() {        
+        StringBuilder builder = new StringBuilder(XbmqUtils.getGatewayTopic());        
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR); 
         builder.append(MqttTopic.SINGLE_LEVEL_WILDCARD);
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR); 

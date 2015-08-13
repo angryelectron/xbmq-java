@@ -20,7 +20,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
  * @author abythell
  */
 public class XbmqDiscoveryListener implements IDiscoveryListener {
-    
+
     private final List<RemoteXBeeDevice> devices;
     private final Format format;
 
@@ -28,7 +28,7 @@ public class XbmqDiscoveryListener implements IDiscoveryListener {
         this.devices = new ArrayList<>();
         this.format = format;
     }
-    
+
     @Override
     public void deviceDiscovered(RemoteXBeeDevice rxbd) {
         devices.add(rxbd);
@@ -41,17 +41,16 @@ public class XbmqDiscoveryListener implements IDiscoveryListener {
 
     @Override
     public void discoveryFinished(String error) {
-        MqttDiscoveryMessage message;
-        if (error != null) {
-            message = new MqttDiscoveryMessage(error, format);
-        } else {
-            message = new MqttDiscoveryMessage(devices, format);
-        }
+        MqttDiscoveryMessage message = new MqttDiscoveryMessage();
         try {
-            message.send();
+            if (error != null) {
+                message.send(error, format);
+            } else {
+                message.send(devices, format);
+            }
         } catch (MqttException ex) {
             Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
         }
     }
-    
+
 }

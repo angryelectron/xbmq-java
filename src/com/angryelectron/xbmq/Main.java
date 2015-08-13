@@ -44,10 +44,10 @@ public class Main {
          * Subscribe to topics.
          */
         String[] topics = {
-            MqttDataMessage.getSubscriptionTopic(),   
-            MqttAtMessage.getSubscriptionTopic(),
-            MqttDiscoveryMessage.getSubscriptionTopic(),
-            MqttIOMessage.getSubscriptionTopic()
+            new MqttDataMessage().getSubscriptionTopic(),   
+            new MqttAtMessage().getSubscriptionTopic(),
+            new MqttDiscoveryMessage().getSubscriptionTopic(),
+            new MqttIOMessage().getSubscriptionTopic()
         };
         int[] qos = {0, 0, 0, 0};
         

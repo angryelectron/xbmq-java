@@ -27,11 +27,11 @@ public class XbmqSampleReceiveListener implements IIOSampleReceiveListener {
     public void ioSampleReceived(RemoteXBeeDevice rxbd, IOSample ios) {        
         if (ios.hasDigitalValues()) {
             HashMap<IOLine, IOValue> digitalValues = ios.getDigitalValues();
+            MqttIOMessage message = new MqttIOMessage();
             for (Map.Entry<IOLine, IOValue> entry : digitalValues.entrySet()) {
-                Integer value = entry.getValue().equals(IOValue.HIGH) ? 1 : 0;
-                MqttIOMessage message = new MqttIOMessage(rxbd.get64BitAddress(), entry.getKey(), value);
+                Integer value = entry.getValue().equals(IOValue.HIGH) ? 1 : 0;                
                 try {
-                    message.send();
+                    message.send(rxbd.get64BitAddress(), entry.getKey(), value);
                 } catch (MqttException ex) {
                     Logger.getLogger(XbmqSampleReceiveListener.class.getName()).log(Level.ERROR, ex);
                 }
@@ -39,11 +39,10 @@ public class XbmqSampleReceiveListener implements IIOSampleReceiveListener {
         }
         if (ios.hasAnalogValues()) {
             HashMap<IOLine, Integer> analogValues = ios.getAnalogValues();
-            for (Map.Entry<IOLine, Integer> entry : analogValues.entrySet()) {
-                MqttIOMessage message = new MqttIOMessage(
-                        rxbd.get64BitAddress(), entry.getKey(), entry.getValue());
+            MqttIOMessage message = new MqttIOMessage();
+            for (Map.Entry<IOLine, Integer> entry : analogValues.entrySet()) {                                        
                 try {
-                    message.send();
+                    message.send(rxbd.get64BitAddress(), entry.getKey(), entry.getValue());
                 } catch (MqttException ex) {
                     Logger.getLogger(XbmqSampleReceiveListener.class.getName()).log(Level.ERROR, ex);
                 }

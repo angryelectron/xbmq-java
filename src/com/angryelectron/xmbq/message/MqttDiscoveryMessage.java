@@ -5,64 +5,69 @@
  */
 package com.angryelectron.xmbq.message;
 
+import com.angryelectron.xbmq.Xbmq;
+import com.angryelectron.xbmq.XbmqUtils;
 import com.digi.xbee.api.RemoteXBeeDevice;
+import com.digi.xbee.api.models.XBee64BitAddress;
 import java.util.List;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  *
  * @author abythell
  */
-public class MqttDiscoveryMessage extends MqttBaseMessage {
+public class MqttDiscoveryMessage implements MqttBaseMessage {
     
     static final String PUBTOPIC = "discoveryResponse";        
     static final String SUBTOPIC = "discoveryRequest";
     
     public static enum Format {JSON, CSV, XML};
-    
-    public MqttDiscoveryMessage(List<RemoteXBeeDevice> devices, Format format) {                
+        
+    public void send(List<RemoteXBeeDevice> devices, Format format) throws MqttException {                
+        MqttMessage message = new MqttMessage();
         switch (format) {
             case CSV:
-                this.message.setPayload(toCSV(devices).getBytes());
+                message.setPayload(toCSV(devices).getBytes());
                 break;
             case XML:
-                this.message.setPayload(toXML(devices).getBytes());
+                message.setPayload(toXML(devices).getBytes());
                 break;
             case JSON:
             default:
-                this.message.setPayload(toJSON(devices).getBytes());
+                message.setPayload(toJSON(devices).getBytes());
                 break;
         }
+        String topic = getPublishTopic(XBee64BitAddress.UNKNOWN_ADDRESS);
+        XbmqUtils.publishMqtt(topic, message);
         
     }
 
-    public MqttDiscoveryMessage(String error, Format format) {
+    public void send(String error, Format format) throws MqttException {
         //TODO: make error message obey response format
-        this.message.setPayload(error.getBytes());        
+        MqttMessage message = new MqttMessage(error.getBytes());
+        String topic = getPublishTopic(XBee64BitAddress.UNKNOWN_ADDRESS);
+        XbmqUtils.publishMqtt(topic, message);        
     }
                         
     @Override
-    String getPublishTopic() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(xbmq.getRootTopic());
-        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(xbmq.getGatewayId());
+    public String getPublishTopic(XBee64BitAddress address) {
+        StringBuilder builder = new StringBuilder(XbmqUtils.getGatewayTopic());        
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(PUBTOPIC);
         return builder.toString();
     }
     
-    public static String getSubscriptionTopic() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(xbmq.getRootTopic());
-        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(xbmq.getGatewayId());
+    @Override
+    public  String getSubscriptionTopic() {
+        StringBuilder builder = new StringBuilder(XbmqUtils.getGatewayTopic());        
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(SUBTOPIC);
         return builder.toString();
     }
     
-    public final String toJSON(List<RemoteXBeeDevice> devices) {
+    private String toJSON(List<RemoteXBeeDevice> devices) {
         StringBuilder builder = new StringBuilder("{\"devices\": [");        
         for (int i=0; i < devices.size(); i++) {
             builder.append("\"");

@@ -20,9 +20,9 @@ public class XbmqDataReceiveListener implements IDataReceiveListener {
 
     @Override
     public void dataReceived(XBeeMessage xbm) {
-        MqttDataMessage message = new MqttDataMessage(xbm);
+        MqttDataMessage message = new MqttDataMessage();
         try {
-            message.send();
+            message.send(xbm);
         } catch (MqttException ex) {
             Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
         }
