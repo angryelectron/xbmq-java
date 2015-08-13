@@ -20,7 +20,8 @@ public class MqttAtMessage extends MqttBaseMessage {
     
     public MqttAtMessage(XBee64BitAddress address, String command, String value) {
         this.address = address;
-        this.message = new MqttMessage((command + "=" + value).getBytes());        
+        this.message = new MqttMessage((command + "=" + value).getBytes());
+        this.message.setRetained(true);
     }
     
     @Override

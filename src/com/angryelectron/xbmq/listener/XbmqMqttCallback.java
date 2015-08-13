@@ -8,7 +8,6 @@ package com.angryelectron.xbmq.listener;
 import com.angryelectron.xmbq.message.XBeeDiscoveryMessage;
 import com.angryelectron.xmbq.message.XBeeAtMessage;
 import com.angryelectron.xmbq.message.XBeeDataMessage;
-import com.digi.xbee.api.exceptions.TimeoutException;
 import com.digi.xbee.api.exceptions.XBeeException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
