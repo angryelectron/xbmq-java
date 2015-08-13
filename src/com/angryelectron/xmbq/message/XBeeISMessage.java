@@ -28,35 +28,12 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  *
  * @author abythell
  */
-public class XBeeISMessage {
-
-    private final MqttMessage message;
-    private final String topic;
-    private final Xbmq xbmq;
-    private final XBeeDevice xbee;    
-
-    public XBeeISMessage(String topic, MqttMessage mm) {
-        this.topic = topic;
-        this.message = mm;
-        this.xbmq = Xbmq.getInstance();
-        this.xbee = xbmq.getXBee();
-    }
-
-    public void send() throws XBeeException, MqttException {
-        /**
-         * Extract address from topic.
-         */
-        Pattern pattern = Pattern.compile(xbmq.getRootTopic()
-                + "\\/[0-9a-fA-F]{16}\\/([0-9a-fA-F]{16})\\/" + MqttIOMessage.SUBTOPIC);
-        Matcher matcher = pattern.matcher(this.topic);
-        if (!matcher.find()) {
-            throw new XBeeException("Invalid topic: " + topic);
-        }
-        XBee64BitAddress address = new XBee64BitAddress(matcher.group(1));
-
-        /**
-         * Send command to remote XBee
-         */
+public class XBeeISMessage implements XBeeMessage {
+        
+    @Override
+    public void send(String topic, MqttMessage mm) throws Exception {
+        XBeeDevice xbee = Xbmq.getInstance().getXBee();
+        XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
         IOSample sample = rxd.readIOSample();
         
@@ -67,8 +44,9 @@ public class XBeeISMessage {
         listener.ioSampleReceived(rxd, sample);
     }        
 
-    public static boolean isISTopic(String topic) {
+    @Override
+    public boolean subscribesTo(String topic) {
         return topic.contains(MqttIOMessage.SUBTOPIC);
     }    
-    
+        
 }

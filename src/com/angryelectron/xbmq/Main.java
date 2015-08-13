@@ -9,7 +9,6 @@ import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.angryelectron.xbmq.listener.XbmqDataReceiveListener;
 import com.angryelectron.xbmq.listener.XbmqMqttCallback;
 import com.angryelectron.xmbq.message.MqttAtMessage;
-import com.angryelectron.xmbq.message.MqttBaseMessage;
 import com.angryelectron.xmbq.message.MqttDataMessage;
 import com.angryelectron.xmbq.message.MqttDiscoveryMessage;
 import com.angryelectron.xmbq.message.MqttIOMessage;
@@ -39,7 +38,7 @@ public class Main {
          */
         XBeeDevice xbee = xbmq.getXBee();
         xbee.addDataListener(new XbmqDataReceiveListener());
-        xbee.addIOSampleListener(new XbmqSampleReceiveListener());
+        xbee.addIOSampleListener(new XbmqSampleReceiveListener());                
         
         /**
          * Subscribe to topics.

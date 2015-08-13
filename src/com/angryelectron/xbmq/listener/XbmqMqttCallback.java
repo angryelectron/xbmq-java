@@ -5,11 +5,14 @@
  */
 package com.angryelectron.xbmq.listener;
 
-import com.angryelectron.xmbq.message.XBeeDiscoveryMessage;
 import com.angryelectron.xmbq.message.XBeeAtMessage;
+import com.angryelectron.xmbq.message.XBeeDiscoveryMessage;
 import com.angryelectron.xmbq.message.XBeeDataMessage;
 import com.angryelectron.xmbq.message.XBeeISMessage;
+import com.angryelectron.xmbq.message.XBeeMessage;
 import com.digi.xbee.api.exceptions.XBeeException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -22,6 +25,18 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  * @author abythell
  */
 public class XbmqMqttCallback implements MqttCallback {
+
+    /**
+     * A list of every XBeeMessage implementation than can be
+     * received at the gateway via MQTT subscription.
+     */
+    private final ArrayList<XBeeMessage> messageTypes = new ArrayList<>(
+            Arrays.asList(
+                    new XBeeAtMessage(),
+                    new XBeeDataMessage(),
+                    new XBeeDiscoveryMessage(),
+                    new XBeeISMessage()            
+            ));
 
     @Override
     public void connectionLost(Throwable thrwbl) {
@@ -39,20 +54,12 @@ public class XbmqMqttCallback implements MqttCallback {
      * @throws Exception
      */
     @Override
-    public void messageArrived(String topic, MqttMessage mm) throws Exception {
+    public void messageArrived(String topic, MqttMessage mm) throws Exception {        
         try {
-            if (XBeeDataMessage.isDataTopic(topic)) {                
-                XBeeDataMessage message = new XBeeDataMessage(topic, mm);
-                message.send();
-            } else if (XBeeAtMessage.isAtTopic(topic)) {                
-                XBeeAtMessage message = new XBeeAtMessage(topic, mm);
-                message.send();
-            } else if (XBeeDiscoveryMessage.isDiscoveryTopic(topic)) {                
-                XBeeDiscoveryMessage message = new XBeeDiscoveryMessage(topic, mm);
-                message.send();
-            } else if (XBeeISMessage.isISTopic(topic)) {
-                XBeeISMessage message = new XBeeISMessage(topic, mm);
-                message.send();
+            for (XBeeMessage m : messageTypes) {
+                if (m.subscribesTo(topic)) {
+                    m.send(topic, mm);
+                }
             }
         } catch (XBeeException | MqttException ex) {
             Logger.getLogger(this.getClass()).log(Level.ERROR, ex);

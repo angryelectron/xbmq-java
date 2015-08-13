@@ -26,13 +26,8 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  *
  * @author abythell
  */
-public class XBeeAtMessage {
-
-    private final MqttMessage message;
-    private final String topic;
-    private final Xbmq xbmq;
-    private final XBeeDevice xbee;
-
+public class XBeeAtMessage implements XBeeMessage {
+    
     private final Set<String> unsupportedCommands = new HashSet<>(Arrays.asList(
             "ND", //node discovery - handled by other mechanisms
             "CB", //commission button - CB[N]
@@ -49,29 +44,11 @@ public class XBeeAtMessage {
             "1S", //force sensors sample
             "CN" //exit command mode            
     ));
-
-    public XBeeAtMessage(String topic, MqttMessage mm) {
-        this.topic = topic;
-        this.message = mm;
-        this.xbmq = Xbmq.getInstance();
-        this.xbee = xbmq.getXBee();
-    }
-
-    public void send() throws XBeeException, MqttException {
-        /**
-         * Extract address from topic.
-         */
-        Pattern pattern = Pattern.compile(xbmq.getRootTopic()
-                + "\\/[0-9a-fA-F]{16}\\/([0-9a-fA-F]{16})\\/" + MqttAtMessage.SUBTOPIC);
-        Matcher matcher = pattern.matcher(this.topic);
-        if (!matcher.find()) {
-            throw new XBeeException("Invalid topic: " + topic);
-        }
-        XBee64BitAddress address = new XBee64BitAddress(matcher.group(1));
-
-        /**
-         * Send command to remote XBee
-         */
+    
+    @Override
+    public void send(String topic, MqttMessage message) throws Exception {        
+        XBeeDevice xbee = Xbmq.getInstance().getXBee();
+        XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);        
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);        
         String msg = new String(message.getPayload(), StandardCharsets.UTF_8);
         if (msg.isEmpty()) {
@@ -87,7 +64,8 @@ public class XBeeAtMessage {
         }
     }
 
-    public static boolean isAtTopic(String topic) {
+    @Override
+    public boolean subscribesTo(String topic) {
         return topic.contains(MqttAtMessage.SUBTOPIC);
     }
 

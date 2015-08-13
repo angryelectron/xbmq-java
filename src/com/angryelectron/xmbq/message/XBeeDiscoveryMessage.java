@@ -18,30 +18,13 @@ import org.apache.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- *
+
  * @author abythell
  */
-public class XBeeDiscoveryMessage {
+public class XBeeDiscoveryMessage implements XBeeMessage {
 
-    private final String topic;
-    private final Xbmq xbmq;
-    private final XBeeDevice xbee;
-    private Format format;
-
-    public XBeeDiscoveryMessage(String topic, MqttMessage mm) {
-        this.topic = topic;
-        this.xbmq = Xbmq.getInstance();
-        this.xbee = xbmq.getXBee();
-        String fmt = new String(mm.getPayload(), StandardCharsets.UTF_8).toUpperCase();
-        try {
-            this.format = Format.valueOf(fmt);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(this.getClass()).log(Level.WARN, fmt + ": invalid format, using default.");
-            this.format = Format.JSON;
-        }
-    }
-
-    public static boolean isDiscoveryTopic(String topic) {
+    @Override
+    public boolean subscribesTo(String topic) {
         return topic.contains(MqttDiscoveryMessage.SUBTOPIC);
     }
 
@@ -49,12 +32,32 @@ public class XBeeDiscoveryMessage {
      * Discover all remote XBee devices on the same network as the local XBee
      * device.
      *
+     * @param topic
+     * @param message
      * @see <a href="https://docs.digi.com/display/XBJLIB/Discover+the+network">
      * https://docs.digi.com/display/XBJLIB/Discover+the+network</a>
      * @throws XBeeException
      */
-    public void send() throws XBeeException {
+    @Override
+    public void send(String topic, MqttMessage message) throws Exception {
+         XBeeDevice xbee = Xbmq.getInstance().getXBee();
+        
+        /**
+         * Determine response format.
+         */
+        Format format;
+        String fmt = new String(message.getPayload(), StandardCharsets.UTF_8).toUpperCase();
+        try {
+            format = Format.valueOf(fmt);
+        } catch (IllegalArgumentException ex) {
+            Logger.getLogger(this.getClass()).log(Level.WARN, fmt + ": invalid format, using default.");
+            format = Format.JSON;
+        }                
         XbmqDiscoveryListener listener = new XbmqDiscoveryListener(format);
+        
+        /**
+         * Start async discovery.
+         */
         XBeeNetwork network = xbee.getNetwork();
         network.setDiscoveryTimeout(15000);
         network.addDiscoveryListener(listener);
