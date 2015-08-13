@@ -19,7 +19,7 @@ public class MqttDataMessage extends MqttBaseMessage {
     
     public MqttDataMessage(XBeeMessage message) {        
         this.message.setPayload(message.getData());
-        this.address = message.getDevice().get64BitAddress();        
+        this.address = message.getDevice().get64BitAddress();            
     }
                         
     @Override
@@ -33,10 +33,10 @@ public class MqttDataMessage extends MqttBaseMessage {
     public static String getSubscriptionTopic() {
         StringBuilder builder = new StringBuilder(MqttBaseMessage.getSubscriptionTopic());
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append("+");
+        builder.append(MqttTopic.SINGLE_LEVEL_WILDCARD);
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(SUBTOPIC);        
         return builder.toString();
     }
-                        
-}
+    
+    }
