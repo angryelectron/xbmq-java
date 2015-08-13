@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Xbmq - XBee / MQTT Gateway 
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 package com.angryelectron.xmbq.message;
 
@@ -14,21 +13,32 @@ import com.digi.xbee.api.models.XBee64BitAddress;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- *
+ * Send a data packet contained in an MQTT message to an XBee device.
  * @author abythell
  */
-public class XBeeDataMessage implements XBeeMessage {    
+public class XBeeDataMessage implements XBeeMessage {
 
+    /**
+     * Check if this object can handle this message.
+     * @param topic The topic to check.
+     * @return True if the message can be handled.
+     */
     @Override
     public boolean subscribesTo(String topic) {
         return topic.contains(MqttDataMessage.SUBTOPIC);
     }
 
+    /**
+     * Send a data packet to an XBee device.
+     * @param topic topic
+     * @param message message 
+     * @throws XBeeException if the data cannot be sent.
+     */
     @Override
-    public void send(String topic, MqttMessage message) throws XBeeException {        
+    public void send(String topic, MqttMessage message) throws XBeeException {
         XBeeDevice xbee = Xbmq.getInstance().getXBee();
         XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
-        xbee.sendData(rxd, message.getPayload());        
+        xbee.sendData(rxd, message.getPayload());
     }
 }

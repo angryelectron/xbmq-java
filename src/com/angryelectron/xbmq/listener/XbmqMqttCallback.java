@@ -1,8 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Xbmq - XBee / MQTT Gateway
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
+
 package com.angryelectron.xbmq.listener;
 
 import com.angryelectron.xmbq.message.XBeeAtMessage;
@@ -21,8 +21,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- *
- * @author abythell
+ * Listen and process messages from subscribed MQTT topics. 
  */
 public class XbmqMqttCallback implements MqttCallback {
 
@@ -38,6 +37,10 @@ public class XbmqMqttCallback implements MqttCallback {
                     new XBeeISMessage()            
             ));
 
+    /**
+     * Called when the connection to the MQTT broker is lost.
+     * @param thrwbl ?
+     */
     @Override
     public void connectionLost(Throwable thrwbl) {
         Logger.getLogger(this.getClass()).log(Level.ERROR, thrwbl);
@@ -49,9 +52,9 @@ public class XbmqMqttCallback implements MqttCallback {
      * Note from docs: "If an implementation of this method throws an exception,
      * then the client will be shutdown".
      *
-     * @param topic
-     * @param mm
-     * @throws Exception
+     * @param topic MQTT topic
+     * @param mm MQTT message
+     * @throws Exception if things go very wrong.
      */
     @Override
     public void messageArrived(String topic, MqttMessage mm) throws Exception {        
@@ -66,6 +69,10 @@ public class XbmqMqttCallback implements MqttCallback {
         }
     }
 
+    /**
+     * Called when an MQTT message has completed delivery.
+     * @param imdt Token.
+     */
     @Override
     public void deliveryComplete(IMqttDeliveryToken imdt) {
         //throw new UnsupportedOperationException("Not supported yet.");

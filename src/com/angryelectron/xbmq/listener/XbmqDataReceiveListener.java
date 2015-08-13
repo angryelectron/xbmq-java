@@ -1,8 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Xbmq - XBee / MQTT Gateway
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
+
 package com.angryelectron.xbmq.listener;
 
 import com.angryelectron.xmbq.message.MqttDataMessage;
@@ -13,11 +13,15 @@ import org.apache.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 /**
- *
- * @author abythell
+ * Listen for unsolicited data packets from the XBee network and publish
+ * them as MQTT messages. 
  */
 public class XbmqDataReceiveListener implements IDataReceiveListener {
 
+    /**
+     * Called when a data packet is received.
+     * @param xbm Message containing data and sender address.
+     */
     @Override
     public void dataReceived(XBeeMessage xbm) {
         MqttDataMessage message = new MqttDataMessage();

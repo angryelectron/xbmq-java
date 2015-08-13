@@ -1,8 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Xbmq - XBee / MQTT Gateway
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
+
 package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.XbmqUtils;
@@ -13,20 +13,29 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
- *
- * @author abythell
+ * Publish XBee data packets as MQTT messages. 
  */
 public class MqttDataMessage implements MqttBaseMessage {
 
     static final String PUBTOPIC = "dataOut";
     static final String SUBTOPIC = "dataIn";
 
+    /**
+     * Publish XBee data to MQTT topic.
+     * @param message The data to be published.
+     * @throws MqttException if the message cannot be published.
+     */
     public void send(XBeeMessage message) throws MqttException {
         MqttMessage m = new MqttMessage(message.getData());
         XBee64BitAddress address = message.getDevice().get64BitAddress();
         XbmqUtils.publishMqtt(getPublishTopic(address), m);
     }
 
+    /**
+     * The MQTT topic used to publish XBee data responses.
+     * @param address XBee address that send the data.
+     * @return rootTopic/gateway-address/device-address/dataOut.
+     */
     @Override
     public String getPublishTopic(XBee64BitAddress address) {
         StringBuilder builder = new StringBuilder(XbmqUtils.getDeviceTopic(address));
@@ -35,6 +44,10 @@ public class MqttDataMessage implements MqttBaseMessage {
         return builder.toString();
     }
 
+    /**
+     * The MQTT topic used to receive incoming data requests.
+     * @return rootTopic/gateway-address/+/dataIn.
+     */
     @Override
     public String getSubscriptionTopic() {
         StringBuilder builder = new StringBuilder(XbmqUtils.getGatewayTopic());

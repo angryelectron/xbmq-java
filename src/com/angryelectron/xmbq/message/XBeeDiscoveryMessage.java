@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Xbmq - XBee / MQTT Gateway 
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 package com.angryelectron.xmbq.message;
 
@@ -18,11 +17,16 @@ import org.apache.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
-
- * @author abythell
+ * Discover the XBee network attached to the gateway.
  */
 public class XBeeDiscoveryMessage implements XBeeMessage {
 
+    /**
+     * Check if an MQTT message can be handled by this class.
+     *
+     * @param topic The topic to check.
+     * @return true if this class can handle this MQTT message.
+     */
     @Override
     public boolean subscribesTo(String topic) {
         return topic.contains(MqttDiscoveryMessage.SUBTOPIC);
@@ -32,16 +36,17 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
      * Discover all remote XBee devices on the same network as the local XBee
      * device.
      *
-     * @param topic
-     * @param message
+     * @param topic topic
+     * @param message The desired response format. If an unknown format is
+     * specified, JSON will be used.
      * @see <a href="https://docs.digi.com/display/XBJLIB/Discover+the+network">
      * https://docs.digi.com/display/XBJLIB/Discover+the+network</a>
      * @throws XBeeException
      */
     @Override
     public void send(String topic, MqttMessage message) throws Exception {
-         XBeeDevice xbee = Xbmq.getInstance().getXBee();
-        
+        XBeeDevice xbee = Xbmq.getInstance().getXBee();
+
         /**
          * Determine response format.
          */
@@ -52,9 +57,9 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
         } catch (IllegalArgumentException ex) {
             Logger.getLogger(this.getClass()).log(Level.WARN, fmt + ": invalid format, using default.");
             format = Format.JSON;
-        }                
+        }
         XbmqDiscoveryListener listener = new XbmqDiscoveryListener(format);
-        
+
         /**
          * Start async discovery.
          */
@@ -87,5 +92,4 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
             network.removeDiscoveryListener(listener);
         }
     }
-
 }

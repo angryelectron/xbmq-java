@@ -1,15 +1,14 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Xbmq - XBee / MQTT Gateway
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
+
 package com.angryelectron.xmbq.message;
 
 import com.digi.xbee.api.models.XBee64BitAddress;
 
 /**
- *
- * @author abythell
+ * Common interface for all MQTT messages. 
  */
 public interface MqttBaseMessage {            
     public String getPublishTopic(XBee64BitAddress address);    

@@ -1,7 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Xbmq - XBee / MQTT Gateway
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 package com.angryelectron.xbmq;
 
@@ -18,8 +17,7 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 /**
- *
- * @author abythell
+ * Main entry point for the application 
  */
 public class Main {
 
@@ -30,6 +28,9 @@ public class Main {
      */
     public static void main(String[] args) throws XBeeException, MqttException {
 
+        /**
+         * Connect to XBee and MQTT broker.         
+         */
         Xbmq xbmq = Xbmq.getInstance();
         xbmq.connect();
 
@@ -54,6 +55,10 @@ public class Main {
         MqttAsyncClient mqtt = xbmq.getMqttClient();
         mqtt.setCallback(new XbmqMqttCallback());
         mqtt.subscribe(topics, qos);
+        
+        /**
+         * Wait for events.
+         */
 
     }
 

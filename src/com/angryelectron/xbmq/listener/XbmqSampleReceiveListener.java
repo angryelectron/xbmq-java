@@ -1,8 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Xbmq - XBee / MQTT Gateway
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
+
 package com.angryelectron.xbmq.listener;
 
 import com.angryelectron.xmbq.message.MqttIOMessage;
@@ -18,11 +18,15 @@ import org.apache.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 /**
- *
- * @author abythell
+ * Listen for unsolicited IO Samples from the XBeeNetwork and process them. 
  */
 public class XbmqSampleReceiveListener implements IIOSampleReceiveListener {
     
+    /**
+     * Called when a sample is received.
+     * @param rxbd The remote device which sent the sample.
+     * @param ios Sample data.
+     */
     @Override
     public void ioSampleReceived(RemoteXBeeDevice rxbd, IOSample ios) {        
         if (ios.hasDigitalValues()) {

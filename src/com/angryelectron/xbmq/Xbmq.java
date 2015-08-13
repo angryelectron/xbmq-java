@@ -1,8 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Xbmq - XBee / MQTT Gateway
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
+
 package com.angryelectron.xbmq;
 
 import com.digi.xbee.api.XBeeDevice;
@@ -14,8 +14,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
- *
- * @author abythell
+ * Global access to XBee device and MQTT broker.  Singleton.
  */
 public class Xbmq {
     
@@ -24,20 +23,31 @@ public class Xbmq {
     private String rootTopic;
     private String gatewayId;
     
-    private Xbmq(){}
-     
-    private static final String STATUSTOPIC = "online";
+    private Xbmq(){}         
     
     private static class SingletonHelper{
         private static final Xbmq INSTANCE = new Xbmq();
     }
-     
+
+    /**
+     * Get single instance of this class.
+     * @return Global Xbmq object.
+     */
     public static Xbmq getInstance(){
         return SingletonHelper.INSTANCE;
     }
             
+    /**
+     * Connect to devices and brokers.
+     * @param baud XBee serial baud rate (eg. 9600)
+     * @param port XBee serial port name (eg. /dev/ttyUSB0)
+     * @param broker MQTT broker (eg. tcp://broker.name:1883)
+     * @param rootTopic Root MQTT topic
+     * @throws XBeeException if connection to XBee fails
+     * @throws MqttException if connection to MQTT broker fails
+     */
     public void connect(int baud, String port, String broker, String rootTopic) throws XBeeException, MqttException {   
-                        
+                
         this.rootTopic = rootTopic;
         
         /**
@@ -55,7 +65,7 @@ public class Xbmq {
         topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         topicBuilder.append(gateway);
         topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        topicBuilder.append(STATUSTOPIC);
+        topicBuilder.append("online");
         String lwtTopic = topicBuilder.toString();
 
         /**
@@ -67,19 +77,30 @@ public class Xbmq {
         mqtt.connect(options).waitForCompletion();
         
         /**
-         * Set online status
+         * Set online status.
          */
         mqtt.publish(lwtTopic, "1".getBytes(), 0, true);
     }
     
+    /**
+     * Connect to devices and brokers.  Reads settings from xmbq.properties
+     * or uses default values if not found.  Defaults are:  port=/dev/ttyUSB0, 
+     * baud=9600, rootTopic="", broker=tcp://test.mosquitto.org:1883.
+     * @throws XBeeException if connection to XBee fails
+     * @throws MqttException if connection to MQTT broker fails
+     */
     public void connect() throws XBeeException, MqttException {
         XbmqConfig config = new XbmqConfig();
         connect(config.getXBeeBaud(), config.getXBeePort(), config.getBroker(), config.getRootTopic());
     }
     
     /**
-     * Get Mqtt Client ID.
-     * @return The MAC address of the XBee radio attached to the gateway.
+     * Get the ID of this Gateway.  The ID is actually the 64-bit address of the
+     * local XBee attached to the gateway, and is the second-level topic for all
+     * requests and responses to/from this gateway.
+     * @return The 64-bit address of the XBee radio attached to the gateway, or 
+     * FFFFFFFFFFFFFFFF if the address is unknown.
+     * 
      */
     public String getGatewayId() {
         if (xbee == null) {
@@ -91,15 +112,31 @@ public class Xbmq {
         return gatewayId;
     }
     
+    /**
+     * Access the XBeeDevice attached to the gateway.
+     * @return XBeeDevice or null if not connected.
+     * @see #connect() 
+     * @see #connect(int, java.lang.String, java.lang.String, java.lang.String) 
+     */
     public XBeeDevice getXBee() {        
         return xbee;
     }
     
+    /**
+     * Access the MQTT client attached to the gateway.
+     * @return MqttAsyncClient or null if not connected.
+     * @see #connect() 
+     * @see #connect(int, java.lang.String, java.lang.String, java.lang.String) 
+     */
     public MqttAsyncClient getMqttClient() {              
         return mqtt;
     }
     
-    public String getRootTopic() {
+    /**
+     * Get the MQTT top-level topic. 
+     * @return Root topic, or an empty string if not set.
+     */
+    String getRootTopic() {
         if (rootTopic == null) {
             return "";
         } else {
