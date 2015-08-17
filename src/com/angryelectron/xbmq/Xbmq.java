@@ -12,6 +12,7 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 /**
  * Global access to XBee device and MQTT broker.  Singleton.
@@ -72,7 +73,8 @@ public class Xbmq {
          * Connect.
          */
         MqttConnectOptions options = new MqttConnectOptions();
-        options.setWill(lwtTopic, "0".getBytes(), 0, true);        
+        options.setWill(lwtTopic, "0".getBytes(), 0, true);         
+        options.setCleanSession(true);        
         mqtt = new MqttAsyncClient(broker, getGatewayId()); 
         mqtt.connect(options).waitForCompletion();
         
@@ -144,9 +146,14 @@ public class Xbmq {
         }
     }
     
-    void disconnect() throws MqttException {
+    /**
+     * Close XBee device and MQTT client.  Blocks until MQTT connection is
+     * closed to ensure last will and testament is published.
+     * @throws MqttException 
+     */
+    public void disconnect() throws MqttException {
         xbee.close();
-        mqtt.disconnect();
+        mqtt.disconnect().waitForCompletion();        
     }
     
 
