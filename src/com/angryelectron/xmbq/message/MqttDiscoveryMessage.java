@@ -5,7 +5,7 @@
 
 package com.angryelectron.xmbq.message;
 
-import com.angryelectron.xbmq.XbmqUtils;
+import com.angryelectron.xbmq.Xbmq;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.models.XBee64BitAddress;
 import java.util.List;
@@ -48,7 +48,7 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
                 break;
         }
         String topic = getPublishTopic(XBee64BitAddress.UNKNOWN_ADDRESS);
-        XbmqUtils.publishMqtt(topic, message);        
+        Xbmq.getInstance().publishMqtt(topic, message);        
     }
 
     /**
@@ -61,7 +61,7 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
         //TODO: make error message obey response format
         MqttMessage message = new MqttMessage(error.getBytes());
         String topic = getPublishTopic(XBee64BitAddress.UNKNOWN_ADDRESS);
-        XbmqUtils.publishMqtt(topic, message);        
+        Xbmq.getInstance().publishMqtt(topic, message);        
     }
                         
     /**
@@ -71,7 +71,7 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
      */
     @Override
     public String getPublishTopic(XBee64BitAddress address) {
-        StringBuilder builder = new StringBuilder(XbmqUtils.getGatewayTopic());        
+        StringBuilder builder = new StringBuilder(Xbmq.getInstance().getGatewayTopic());        
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(PUBTOPIC);
         return builder.toString();
@@ -83,7 +83,7 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
      */
     @Override
     public  String getSubscriptionTopic() {
-        StringBuilder builder = new StringBuilder(XbmqUtils.getGatewayTopic());        
+        StringBuilder builder = new StringBuilder(Xbmq.getInstance().getGatewayTopic());        
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(SUBTOPIC);
         return builder.toString();

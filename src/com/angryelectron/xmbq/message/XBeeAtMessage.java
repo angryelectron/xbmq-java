@@ -5,7 +5,6 @@
 package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.Xbmq;
-import com.angryelectron.xbmq.XbmqUtils;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
@@ -57,7 +56,7 @@ public class XBeeAtMessage implements XBeeMessage {
     @Override
     public void send(String topic, MqttMessage message) throws Exception {
         XBeeDevice xbee = Xbmq.getInstance().getXBee();
-        XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);
+        XBee64BitAddress address = Xbmq.getInstance().getAddressFromTopic(topic);
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
         String msg = new String(message.getPayload(), StandardCharsets.UTF_8);
         if (msg.isEmpty()) {
@@ -117,7 +116,7 @@ public class XBeeAtMessage implements XBeeMessage {
             msg.send(rxd.get64BitAddress(),
                     parameter, rxd.getNodeID());
         } else {
-            String result = XbmqUtils.bytesToString(rxd.getParameter(parameter));
+            String result = Xbmq.bytesToString(rxd.getParameter(parameter));
             MqttAtMessage msg = new MqttAtMessage();
             msg.send(rxd.get64BitAddress(), parameter, result);
         }

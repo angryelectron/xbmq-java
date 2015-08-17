@@ -3,7 +3,7 @@
  */
 package com.angryelectron.xmbq.message;
 
-import com.angryelectron.xbmq.XbmqUtils;
+import com.angryelectron.xbmq.Xbmq;
 import com.digi.xbee.api.io.IOLine;
 import com.digi.xbee.api.models.XBee64BitAddress;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -32,7 +32,7 @@ public class MqttIOMessage implements MqttBaseMessage {
         message.setRetained(true);
         this.line = line;
         String topic = getPublishTopic(address);
-        XbmqUtils.publishMqtt(topic, message);
+        Xbmq.getInstance().publishMqtt(topic, message);
     }
 
     /**
@@ -43,7 +43,7 @@ public class MqttIOMessage implements MqttBaseMessage {
      */
     @Override
     public String getPublishTopic(XBee64BitAddress address) {
-        StringBuilder builder = new StringBuilder(XbmqUtils.getDeviceTopic(address));
+        StringBuilder builder = new StringBuilder(Xbmq.getInstance().getDeviceTopic(address));
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(PUBTOPIC);
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
@@ -62,7 +62,7 @@ public class MqttIOMessage implements MqttBaseMessage {
      */
     @Override
     public String getSubscriptionTopic() {
-        StringBuilder builder = new StringBuilder(XbmqUtils.getGatewayTopic());
+        StringBuilder builder = new StringBuilder(Xbmq.getInstance().getGatewayTopic());
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(MqttTopic.SINGLE_LEVEL_WILDCARD);
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
