@@ -20,6 +20,11 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
     
     static final String PUBTOPIC = "discoveryResponse";        
     static final String SUBTOPIC = "discoveryRequest";
+    private final Xbmq xbmq;
+    
+    public MqttDiscoveryMessage(Xbmq xbmq) {
+        this.xbmq = xbmq;
+    }
     
     /**
      * Discovery results are returned in an MQTT message using one of
@@ -48,7 +53,7 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
                 break;
         }
         String topic = getPublishTopic(XBee64BitAddress.UNKNOWN_ADDRESS);
-        Xbmq.getInstance().publishMqtt(topic, message);        
+        xbmq.publishMqtt(topic, message);        
     }
 
     /**
@@ -61,7 +66,7 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
         //TODO: make error message obey response format
         MqttMessage message = new MqttMessage(error.getBytes());
         String topic = getPublishTopic(XBee64BitAddress.UNKNOWN_ADDRESS);
-        Xbmq.getInstance().publishMqtt(topic, message);        
+        xbmq.publishMqtt(topic, message);        
     }
                         
     /**
@@ -71,7 +76,7 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
      */
     @Override
     public String getPublishTopic(XBee64BitAddress address) {
-        StringBuilder builder = new StringBuilder(Xbmq.getInstance().getGatewayTopic());        
+        StringBuilder builder = new StringBuilder(xbmq.getGatewayTopic());        
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(PUBTOPIC);
         return builder.toString();
@@ -83,7 +88,7 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
      */
     @Override
     public  String getSubscriptionTopic() {
-        StringBuilder builder = new StringBuilder(Xbmq.getInstance().getGatewayTopic());        
+        StringBuilder builder = new StringBuilder(xbmq.getGatewayTopic());        
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(SUBTOPIC);
         return builder.toString();

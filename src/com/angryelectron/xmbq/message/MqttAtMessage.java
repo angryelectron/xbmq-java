@@ -17,7 +17,12 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 public class MqttAtMessage implements MqttBaseMessage {
     
     public static String PUBTOPIC = "atOut";
-    public static String SUBTOPIC = "atIn";    
+    public static String SUBTOPIC = "atIn";  
+    private final Xbmq xbmq;
+        
+    public MqttAtMessage(Xbmq xbmq) {
+        this.xbmq = xbmq;
+    }
             
     /**
      * Format and publish the AT response as an MQTT message.
@@ -28,7 +33,7 @@ public class MqttAtMessage implements MqttBaseMessage {
      */
     public void send(XBee64BitAddress address, String command, String value) throws MqttException {
         MqttMessage message = new MqttMessage((command + "=" + value).getBytes());        
-        Xbmq.getInstance().publishMqtt(getPublishTopic(address), message);
+        xbmq.publishMqtt(getPublishTopic(address), message);
     }
 
     /**
@@ -38,7 +43,7 @@ public class MqttAtMessage implements MqttBaseMessage {
      */
     @Override
     public String getPublishTopic(XBee64BitAddress address) {
-        StringBuilder builder = new StringBuilder(Xbmq.getInstance().getDeviceTopic(address));
+        StringBuilder builder = new StringBuilder(xbmq.getDeviceTopic(address));
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(PUBTOPIC);
         return builder.toString();
@@ -50,7 +55,7 @@ public class MqttAtMessage implements MqttBaseMessage {
      */
     @Override
     public String getSubscriptionTopic() {
-        StringBuilder builder = new StringBuilder(Xbmq.getInstance().getGatewayTopic());
+        StringBuilder builder = new StringBuilder(xbmq.getGatewayTopic());
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(MqttTopic.SINGLE_LEVEL_WILDCARD);
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);

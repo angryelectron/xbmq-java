@@ -5,6 +5,7 @@
 
 package com.angryelectron.xbmq.listener;
 
+import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xmbq.message.XBeeAtMessage;
 import com.angryelectron.xmbq.message.XBeeDiscoveryMessage;
 import com.angryelectron.xmbq.message.XBeeDataMessage;
@@ -25,18 +26,20 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  */
 public class XbmqMqttCallback implements MqttCallback {
 
-    /**
-     * A list of every XBeeMessage implementation than can be
-     * received at the gateway via MQTT subscription.
-     */
-    private final ArrayList<XBeeMessage> messageTypes = new ArrayList<>(
-            Arrays.asList(
-                    new XBeeAtMessage(),
-                    new XBeeDataMessage(),
-                    new XBeeDiscoveryMessage(),
-                    new XBeeISMessage()            
-            ));
-
+    final private Xbmq xbmq;
+    private final ArrayList<XBeeMessage> messageTypes;
+    
+    public XbmqMqttCallback(Xbmq xbmq) {
+        this.xbmq = xbmq;
+        this.messageTypes = new ArrayList<>(
+                Arrays.asList(
+                        new XBeeAtMessage(xbmq),
+                        new XBeeDataMessage(xbmq),
+                        new XBeeDiscoveryMessage(xbmq),
+                        new XBeeISMessage(xbmq)
+                ));        
+    }
+    
     /**
      * Called when the connection to the MQTT broker is lost.
      * @param thrwbl ?

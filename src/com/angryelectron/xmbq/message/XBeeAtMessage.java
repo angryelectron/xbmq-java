@@ -1,10 +1,11 @@
 /*
- * Xbmq - XBee / MQTT Gateway 
+ * XbmqDefaultProvider - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.Xbmq;
+import com.angryelectron.xbmq.XbmqUtils;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
@@ -22,7 +23,13 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  * Relay AT messages send via MQTT to an XBee network.
  */
 public class XBeeAtMessage implements XBeeMessage {
-
+    
+    private final Xbmq xbmq;
+       
+    public XBeeAtMessage(Xbmq xbmq) {
+        this.xbmq = xbmq;
+    }
+    
     private final Set<String> unsupportedCommands = new HashSet<>(Arrays.asList(
             "ND", //node discovery - handled by other mechanisms
             "CB", //commission button - CB[N]
@@ -55,8 +62,8 @@ public class XBeeAtMessage implements XBeeMessage {
      */
     @Override
     public void send(String topic, MqttMessage message) throws Exception {
-        XBeeDevice xbee = Xbmq.getInstance().getXBee();
-        XBee64BitAddress address = Xbmq.getInstance().getAddressFromTopic(topic);
+        XBeeDevice xbee = xbmq.getXBee();
+        XBee64BitAddress address = xbmq.getAddressFromTopic(topic);
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
         String msg = new String(message.getPayload(), StandardCharsets.UTF_8);
         if (msg.isEmpty()) {
@@ -112,12 +119,12 @@ public class XBeeAtMessage implements XBeeMessage {
             rxd.executeParameter(parameter);
         } else if (parameter.toUpperCase().equals("NI")) {
             rxd.readDeviceInfo();
-            MqttAtMessage msg = new MqttAtMessage();
+            MqttAtMessage msg = new MqttAtMessage(xbmq);
             msg.send(rxd.get64BitAddress(),
                     parameter, rxd.getNodeID());
         } else {
-            String result = Xbmq.bytesToString(rxd.getParameter(parameter));
-            MqttAtMessage msg = new MqttAtMessage();
+            String result = XbmqUtils.bytesToString(rxd.getParameter(parameter));
+            MqttAtMessage msg = new MqttAtMessage(xbmq);
             msg.send(rxd.get64BitAddress(), parameter, result);
         }
     }

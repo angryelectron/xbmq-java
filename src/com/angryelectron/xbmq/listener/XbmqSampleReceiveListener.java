@@ -5,6 +5,7 @@
 
 package com.angryelectron.xbmq.listener;
 
+import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xmbq.message.MqttIOMessage;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.io.IOLine;
@@ -22,6 +23,12 @@ import org.eclipse.paho.client.mqttv3.MqttException;
  */
 public class XbmqSampleReceiveListener implements IIOSampleReceiveListener {
     
+    private final Xbmq xbmq;
+    
+    public XbmqSampleReceiveListener(Xbmq xbmq) {
+        this.xbmq = xbmq;
+    }
+    
     /**
      * Called when a sample is received.
      * @param rxbd The remote device which sent the sample.
@@ -31,7 +38,7 @@ public class XbmqSampleReceiveListener implements IIOSampleReceiveListener {
     public void ioSampleReceived(RemoteXBeeDevice rxbd, IOSample ios) {        
         if (ios.hasDigitalValues()) {
             HashMap<IOLine, IOValue> digitalValues = ios.getDigitalValues();
-            MqttIOMessage message = new MqttIOMessage();
+            MqttIOMessage message = new MqttIOMessage(xbmq);
             for (Map.Entry<IOLine, IOValue> entry : digitalValues.entrySet()) {
                 Integer value = entry.getValue().equals(IOValue.HIGH) ? 1 : 0;                
                 try {
@@ -43,7 +50,7 @@ public class XbmqSampleReceiveListener implements IIOSampleReceiveListener {
         }
         if (ios.hasAnalogValues()) {
             HashMap<IOLine, Integer> analogValues = ios.getAnalogValues();
-            MqttIOMessage message = new MqttIOMessage();
+            MqttIOMessage message = new MqttIOMessage(xbmq);
             for (Map.Entry<IOLine, Integer> entry : analogValues.entrySet()) {                                        
                 try {
                     message.send(rxbd.get64BitAddress(), entry.getKey(), entry.getValue());

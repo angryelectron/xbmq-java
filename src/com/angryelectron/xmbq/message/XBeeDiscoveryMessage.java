@@ -1,5 +1,5 @@
 /*
- * Xbmq - XBee / MQTT Gateway 
+ * XbmqProvider - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 package com.angryelectron.xmbq.message;
@@ -21,6 +21,12 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  */
 public class XBeeDiscoveryMessage implements XBeeMessage {
 
+    private final Xbmq xbmq;
+    
+    public XBeeDiscoveryMessage(Xbmq xbmq) {
+        this.xbmq = xbmq;
+    }
+    
     /**
      * Check if an MQTT message can be handled by this class.
      *
@@ -45,7 +51,7 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
      */
     @Override
     public void send(String topic, MqttMessage message) throws Exception {
-        XBeeDevice xbee = Xbmq.getInstance().getXBee();
+        XBeeDevice xbee = xbmq.getXBee();
 
         /**
          * Determine response format.
@@ -58,7 +64,7 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
             Logger.getLogger(this.getClass()).log(Level.WARN, fmt + ": invalid format, using default.");
             format = Format.JSON;
         }
-        XbmqDiscoveryListener listener = new XbmqDiscoveryListener(format);
+        XbmqDiscoveryListener listener = new XbmqDiscoveryListener(xbmq, format);
 
         /**
          * Start async discovery.

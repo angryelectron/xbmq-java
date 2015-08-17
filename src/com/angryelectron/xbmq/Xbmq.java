@@ -29,21 +29,7 @@ public class Xbmq {
     private MqttAsyncClient mqtt;
     private String rootTopic;
     private String gatewayId;
-    
-    private Xbmq(){}         
-
-    private static class SingletonHelper{
-        private static final Xbmq INSTANCE = new Xbmq();
-    }
-
-    /**
-     * Get single instance of this class.
-     * @return Global Xbmq object.
-     */
-    public static Xbmq getInstance(){
-        return SingletonHelper.INSTANCE;
-    }
-            
+                    
     /**
      * Connect to devices and brokers.
      * @param baud XBee serial baud rate (eg. 9600)
@@ -52,7 +38,7 @@ public class Xbmq {
      * @param rootTopic Root MQTT topic
      * @throws XBeeException if connection to XBee fails
      * @throws MqttException if connection to MQTT broker fails
-     */
+     */   
     public void connect(int baud, String port, String broker, String rootTopic) throws XBeeException, MqttException {   
                 
         this.rootTopic = rootTopic;
@@ -97,6 +83,7 @@ public class Xbmq {
      * @throws XBeeException if connection to XBee fails
      * @throws MqttException if connection to MQTT broker fails
      */
+    
     public void connect() throws XBeeException, MqttException {
         XbmqConfig config = new XbmqConfig();
         connect(config.getXBeeBaud(), config.getXBeePort(), config.getBroker(), config.getRootTopic());
@@ -110,6 +97,7 @@ public class Xbmq {
      * FFFFFFFFFFFFFFFF if the address is unknown.
      * 
      */
+    
     public String getGatewayId() {
         if (xbee == null) {
             return XBee64BitAddress.UNKNOWN_ADDRESS.toString();
@@ -126,6 +114,7 @@ public class Xbmq {
      * @see #connect() 
      * @see #connect(int, java.lang.String, java.lang.String, java.lang.String) 
      */
+    
     public XBeeDevice getXBee() {        
         return xbee;
     }
@@ -136,6 +125,7 @@ public class Xbmq {
      * @see #connect() 
      * @see #connect(int, java.lang.String, java.lang.String, java.lang.String) 
      */
+    
     public MqttAsyncClient getMqttClient() {              
         return mqtt;
     }
@@ -144,7 +134,8 @@ public class Xbmq {
      * Get the MQTT top-level topic. 
      * @return Root topic, or an empty string if not set.
      */
-    String getRootTopic() {
+    
+    public String getRootTopic() {
         if (rootTopic == null) {
             return "";
         } else {
@@ -157,33 +148,22 @@ public class Xbmq {
      * closed to ensure last will and testament is published.
      * @throws MqttException 
      */
+    
     public void disconnect() throws MqttException {
         xbee.close();
         mqtt.disconnect().waitForCompletion();        
     }
     
-    /**
-     * Convert an array of bytes to a string of zero-padded hex bytes. Hex values
-     * A-F are returned as lower-case characters.
-     * @param bytes Byte array to convert.
-     * @return Byte array as a plain-text lower-case string (no ASCII conversion).
-     */
-    public static String bytesToString(byte[] bytes) {
-        StringBuilder builder = new StringBuilder();
-        for (Byte b : bytes) {
-            builder.append(String.format("%02x", b));
-        }
-        return builder.toString();
-    }
-    
-        private static Pattern pattern = Pattern.compile(".*\\/([0-9a-fA-F]{16})\\/([0-9a-fA-F]{16})(\\/.)*");
+        
+    private static Pattern pattern = Pattern.compile(".*\\/([0-9a-fA-F]{16})\\/([0-9a-fA-F]{16})(\\/.)*");
     
     /**
      * Parse a topic and extract the 64-bit address of an XBee device.
      * @param topic Topic to parse.
      * @return 64-bit address.
      */
-    public static XBee64BitAddress getAddressFromTopic(String topic) {        
+    
+    public XBee64BitAddress getAddressFromTopic(String topic) {        
         Matcher matcher = pattern.matcher(topic);
         if (matcher.find()) {
             return new XBee64BitAddress(matcher.group(2));
@@ -197,7 +177,8 @@ public class Xbmq {
      * @param topic Topic to parse.
      * @return 64-bit gateway address.
      */
-    public static XBee64BitAddress getGatewayFromTopic(String topic) {
+    
+    public XBee64BitAddress getGatewayFromTopic(String topic) {
         Matcher matcher = pattern.matcher(topic);
         if (matcher.find()) {
             return new XBee64BitAddress(matcher.group(1));
@@ -212,15 +193,16 @@ public class Xbmq {
      * @param message Message to publish.
      * @throws org.eclipse.paho.client.mqttv3.MqttException
      */
+    
     public void publishMqtt(String topic, MqttMessage message) throws MqttException {                
         mqtt.publish(topic, message, null, new IMqttActionListener(){
 
-            @Override
+            
             public void onSuccess(IMqttToken imt) {
                 //throw new UnsupportedOperationException("Not supported yet.");
             }
 
-            @Override
+            
             public void onFailure(IMqttToken imt, Throwable thrwbl) {
                 Logger.getLogger(this.getClass()).log(Level.ERROR, thrwbl);
             }
@@ -232,6 +214,7 @@ public class Xbmq {
      * Build an Xbmq topic using the gateway address.
      * @return Topic using the format: rootTopic/64-bit-gateway-address.
      */
+    
     public String getGatewayTopic() {                
         StringBuilder builder = new StringBuilder();
         builder.append(this.getRootTopic());
@@ -246,6 +229,7 @@ public class Xbmq {
      * @return Topic using the format:  
      * rootTopic/64bit-gateway-address/64bit-device-address
      */
+    
     public String getDeviceTopic(XBee64BitAddress address) {                
         StringBuilder builder = new StringBuilder();
         builder.append(this.getRootTopic());

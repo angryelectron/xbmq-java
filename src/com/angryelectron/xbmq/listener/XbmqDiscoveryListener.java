@@ -5,6 +5,7 @@
 
 package com.angryelectron.xbmq.listener;
 
+import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xmbq.message.MqttDiscoveryMessage;
 import com.angryelectron.xmbq.message.MqttDiscoveryMessage.Format;
 import com.digi.xbee.api.RemoteXBeeDevice;
@@ -21,14 +22,17 @@ import org.eclipse.paho.client.mqttv3.MqttException;
  */
 public class XbmqDiscoveryListener implements IDiscoveryListener {
 
+    private final Xbmq xbmq;
     private final List<RemoteXBeeDevice> devices;
     private final Format format;
 
     /**
      * Constructor.
+     * @param xbmq
      * @param format The format used for the discovery response.
      */
-    public XbmqDiscoveryListener(Format format) {
+    public XbmqDiscoveryListener(Xbmq xbmq, Format format) {
+        this.xbmq = xbmq;
         this.devices = new ArrayList<>();
         this.format = format;
     }
@@ -57,7 +61,7 @@ public class XbmqDiscoveryListener implements IDiscoveryListener {
      */
     @Override
     public void discoveryFinished(String error) {
-        MqttDiscoveryMessage message = new MqttDiscoveryMessage();
+        MqttDiscoveryMessage message = new MqttDiscoveryMessage(xbmq);
         try {
             if (error != null) {
                 message.send(error, format);

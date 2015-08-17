@@ -40,8 +40,9 @@ public class Main {
      */
     public static void main(String[] args) throws XBeeException, MqttException {
 
-        XbmqConfig config = new XbmqConfig();
-        Xbmq xbmq = Xbmq.getInstance();
+        XbmqConfig config = new XbmqConfig();                
+        final Xbmq xbmq = new Xbmq();
+                
         try {
             CommandLineParser parser = new PosixParser();
             CommandLine cmd = parser.parse(getOptions(), args);
@@ -69,22 +70,22 @@ public class Main {
          * Setup listeners for unsolicited packets from the XBee network.
          */
         XBeeDevice xbee = xbmq.getXBee();
-        xbee.addDataListener(new XbmqDataReceiveListener());
-        xbee.addIOSampleListener(new XbmqSampleReceiveListener());
+        xbee.addDataListener(new XbmqDataReceiveListener(xbmq));
+        xbee.addIOSampleListener(new XbmqSampleReceiveListener(xbmq));
 
         /**
          * Subscribe to topics.
          */
         String[] topics = {
-            new MqttDataMessage().getSubscriptionTopic(),
-            new MqttAtMessage().getSubscriptionTopic(),
-            new MqttDiscoveryMessage().getSubscriptionTopic(),
-            new MqttIOMessage().getSubscriptionTopic()
+            new MqttDataMessage(xbmq).getSubscriptionTopic(),
+            new MqttAtMessage(xbmq).getSubscriptionTopic(),
+            new MqttDiscoveryMessage(xbmq).getSubscriptionTopic(),
+            new MqttIOMessage(xbmq).getSubscriptionTopic()
         };
         int[] qos = {0, 0, 0, 0};
 
         MqttAsyncClient mqtt = xbmq.getMqttClient();
-        mqtt.setCallback(new XbmqMqttCallback());
+        mqtt.setCallback(new XbmqMqttCallback(xbmq));
         mqtt.subscribe(topics, qos);
         
         /**
@@ -94,7 +95,7 @@ public class Main {
             @Override
             public void run() {
                 try {
-                    Xbmq.getInstance().disconnect();
+                    xbmq.disconnect();
                 } catch (MqttException ex) {
                     Logger.getLogger(this.getClass()).log(Level.ERROR, null, ex);
                 }

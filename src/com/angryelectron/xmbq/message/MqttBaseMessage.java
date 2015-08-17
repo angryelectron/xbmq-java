@@ -10,7 +10,7 @@ import com.digi.xbee.api.models.XBee64BitAddress;
 /**
  * Common interface for all MQTT messages. 
  */
-public interface MqttBaseMessage {            
+public interface MqttBaseMessage {                
     public String getPublishTopic(XBee64BitAddress address);    
     public String getSubscriptionTopic();
 }

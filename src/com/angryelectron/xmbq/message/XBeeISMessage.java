@@ -1,5 +1,5 @@
 /*
- * Xbmq - XBee / MQTT Gateway 
+ * XbmqProvider - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 package com.angryelectron.xmbq.message;
@@ -17,6 +17,12 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  */
 public class XBeeISMessage implements XBeeMessage {
         
+    private final Xbmq xbmq;
+    
+    public XBeeISMessage(Xbmq xbmq) {
+        this.xbmq = xbmq;
+    }
+    
     /**
      * Request an IOSample from an XBee Device.  Results are published
      * to the 'io' topic.
@@ -26,15 +32,15 @@ public class XBeeISMessage implements XBeeMessage {
      */
     @Override
     public void send(String topic, MqttMessage mm) throws Exception {
-        XBeeDevice xbee = Xbmq.getInstance().getXBee();
-        XBee64BitAddress address = Xbmq.getInstance().getAddressFromTopic(topic);
+        XBeeDevice xbee = xbmq.getXBee();
+        XBee64BitAddress address = xbmq.getAddressFromTopic(topic);
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
         IOSample sample = rxd.readIOSample();
         
         /**
          * Use the unsolicited IO listener to process the result.        
          */
-        XbmqSampleReceiveListener listener = new XbmqSampleReceiveListener();
+        XbmqSampleReceiveListener listener = new XbmqSampleReceiveListener(xbmq);
         listener.ioSampleReceived(rxd, sample);
     }        
 

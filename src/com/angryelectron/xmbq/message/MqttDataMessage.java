@@ -19,7 +19,11 @@ public class MqttDataMessage implements MqttBaseMessage {
 
     static final String PUBTOPIC = "dataOut";
     static final String SUBTOPIC = "dataIn";
-
+    private final Xbmq xbmq;
+    
+    public MqttDataMessage(Xbmq xbmq) {
+        this.xbmq = xbmq;
+    }
     /**
      * Publish XBee data to MQTT topic.
      * @param message The data to be published.
@@ -28,7 +32,7 @@ public class MqttDataMessage implements MqttBaseMessage {
     public void send(XBeeMessage message) throws MqttException {
         MqttMessage m = new MqttMessage(message.getData());
         XBee64BitAddress address = message.getDevice().get64BitAddress();
-        Xbmq.getInstance().publishMqtt(getPublishTopic(address), m);
+        xbmq.publishMqtt(getPublishTopic(address), m);
     }
 
     /**
@@ -38,7 +42,7 @@ public class MqttDataMessage implements MqttBaseMessage {
      */
     @Override
     public String getPublishTopic(XBee64BitAddress address) {
-        StringBuilder builder = new StringBuilder(Xbmq.getInstance().getDeviceTopic(address));
+        StringBuilder builder = new StringBuilder(xbmq.getDeviceTopic(address));
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(PUBTOPIC);
         return builder.toString();
@@ -50,7 +54,7 @@ public class MqttDataMessage implements MqttBaseMessage {
      */
     @Override
     public String getSubscriptionTopic() {
-        StringBuilder builder = new StringBuilder(Xbmq.getInstance().getGatewayTopic());
+        StringBuilder builder = new StringBuilder(xbmq.getGatewayTopic());
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(MqttTopic.SINGLE_LEVEL_WILDCARD);
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
