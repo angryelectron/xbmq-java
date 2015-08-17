@@ -16,8 +16,18 @@ import org.apache.log4j.Logger;
  * Returns default values if properties file not found. 
  */
 public class XbmqConfig {
-    private static final String propertiesFile = "xbmq.properties";
-    private final Properties properties = new Properties();
+    String propertiesFile = "xbmq.properties";
+    final Properties properties = new Properties();
+    
+    final String PORT = "port";
+    final String BAUD = "baud";
+    final String TOPIC = "rootTopic";
+    final String BROKER = "broker";
+    
+    final String PORT_DEFAULT = "/dev/ttyUSB0";
+    final String BAUD_DEFAULT = "9600";
+    final String TOPIC_DEFAULT = "";
+    final String BROKER_DEFAULT = "tcp://test.mosquitto.org:1883";
     
     /**
      * Constructor.
@@ -32,11 +42,25 @@ public class XbmqConfig {
     }
     
     /**
+     * Constructor.  Uses alternate properties file for testing.
+     * @param propertiesFile 
+     */
+    XbmqConfig(String propertiesFile) {
+        try {
+            properties.load(new FileInputStream(propertiesFile));
+        } catch (IOException ex) {
+            Logger.getLogger(this.getClass()).log(Level.WARN, 
+                    propertiesFile + " not found - using defaults.");
+        }
+        
+    }
+            
+    /**
      * Get the name of the serial port connected to the local XBee device.
      * @return Port name or "/dev/ttyUSB0" if property not set.
      */
     public String getXBeePort() {
-        String port = properties.getProperty("port", "/dev/ttyUSB0");
+        String port = properties.getProperty(PORT, PORT_DEFAULT);
         return port.trim();
     }
     
@@ -45,7 +69,7 @@ public class XbmqConfig {
      * @return Baud rate or 9600 if property not set.
      */
     public Integer getXBeeBaud() {
-        String baud = properties.getProperty("baud", "9600");
+        String baud = properties.getProperty(BAUD, BAUD_DEFAULT);
         return Integer.parseInt(baud.trim());
     }
     
@@ -54,7 +78,7 @@ public class XbmqConfig {
      * @return Root topic name or blank if property not set.
      */
     public String getRootTopic() {
-        String topic = properties.getProperty("rootTopic", "");
+        String topic = properties.getProperty(TOPIC, TOPIC_DEFAULT);
         return topic.trim();
     }
     
@@ -63,7 +87,7 @@ public class XbmqConfig {
      * @return Broker url or "tcp://test.mosquitto.org:1883" if property not set.
      */
     public String getBroker() {
-        String broker = properties.getProperty("broker", "tcp://test.mosquitto.org:1883");
+        String broker = properties.getProperty(BROKER, BROKER_DEFAULT);
         return broker.trim();
     }
 }
