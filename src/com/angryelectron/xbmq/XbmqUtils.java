@@ -23,9 +23,10 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 public class XbmqUtils {
     
     /**
-     * Convert an array of bytes to a string of zero-padded hex bytes. 
+     * Convert an array of bytes to a string of zero-padded hex bytes. Hex values
+     * A-F are returned as lower-case characters.
      * @param bytes Byte array to convert.
-     * @return Byte array as a plain-text string (no ASCII conversion).
+     * @return Byte array as a plain-text lower-case string (no ASCII conversion).
      */
     public static String bytesToString(byte[] bytes) {
         StringBuilder builder = new StringBuilder();
@@ -35,7 +36,7 @@ public class XbmqUtils {
         return builder.toString();
     }
         
-    private static Pattern pattern = Pattern.compile(".*\\/([0-9a-fA-F]{16})\\/([0-9a-fA-F]{16})\\/.+");
+    private static Pattern pattern = Pattern.compile(".*\\/([0-9a-fA-F]{16})\\/([0-9a-fA-F]{16})(\\/.)*");
     
     /**
      * Parse a topic and extract the 64-bit address of an XBee device.
