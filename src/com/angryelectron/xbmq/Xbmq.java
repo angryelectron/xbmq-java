@@ -51,26 +51,30 @@ public class Xbmq {
         /**
          * Setup last will and testament.
          */
-        StringBuilder topicBuilder = new StringBuilder(rootTopic);
-        topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        topicBuilder.append(getGatewayAddress());
-        topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        topicBuilder.append("online");
-        String lwtTopic = topicBuilder.toString();
+        
 
         /**
          * Connect.
          */
         MqttConnectOptions options = new MqttConnectOptions();
-        options.setWill(lwtTopic, "0".getBytes(), 0, true);         
+        options.setWill(getLwtTopic(), "0".getBytes(), 0, true);         
         options.setCleanSession(true);        
         mqtt = new MqttAsyncClient(broker, getGatewayAddress().toString()); 
         mqtt.connect(options).waitForCompletion();
         
         /**
          * Set online status.
-         */
-        mqtt.publish(lwtTopic, "1".getBytes(), 0, true);
+         */        
+        this.publishMqtt(getLwtTopic(), new MqttMessage("1".getBytes()));
+    }
+    
+    public String getLwtTopic() {
+        StringBuilder topicBuilder = new StringBuilder(rootTopic);
+        topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
+        topicBuilder.append(getGatewayAddress());
+        topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
+        topicBuilder.append("online");
+        return topicBuilder.toString();        
     }
     
     /**
@@ -146,7 +150,7 @@ public class Xbmq {
     }
     
         
-    private static Pattern pattern = Pattern.compile(".*\\/([0-9a-fA-F]{16})\\/([0-9a-fA-F]{16})(\\/.)*");
+    private static final Pattern pattern = Pattern.compile(".*\\/([0-9a-fA-F]{16})\\/([0-9a-fA-F]{16})(\\/.)*");
     
     /**
      * Parse a topic and extract the 64-bit address of an XBee device.
@@ -187,13 +191,13 @@ public class Xbmq {
     
     public void publishMqtt(String topic, MqttMessage message) throws MqttException {                
         mqtt.publish(topic, message, null, new IMqttActionListener(){
-
             
+            @Override
             public void onSuccess(IMqttToken imt) {
                 //throw new UnsupportedOperationException("Not supported yet.");
             }
 
-            
+            @Override
             public void onFailure(IMqttToken imt, Throwable thrwbl) {
                 Logger.getLogger(this.getClass()).log(Level.ERROR, thrwbl);
             }
