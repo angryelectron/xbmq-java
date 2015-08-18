@@ -40,36 +40,36 @@ public class Main {
      */
     public static void main(String[] args) throws XBeeException, MqttException {
 
-        XbmqConfig config = new XbmqConfig();                
-        final Xbmq xbmq = new Xbmq();
-                
+        XbmqConfig config = new XbmqConfig();
+        CommandLine cmd = null;
         try {
             CommandLineParser parser = new PosixParser();
-            CommandLine cmd = parser.parse(getOptions(), args);
-
-            if (cmd.hasOption("h") || cmd.hasOption("v")) {
-                getHelp();
-                System.exit(0);
-            }
-
-            String port = (cmd.hasOption("p")) ? cmd.getOptionValue("p")
-                    : config.getXBeePort();
-            String baud = (cmd.hasOption("b")) ? cmd.getOptionValue("b")
-                    : config.getXBeeBaud().toString();
-            String rootTopic = (cmd.hasOption("t")) ? cmd.getOptionValue("t")
-                    : config.getRootTopic();
-            String broker = (cmd.hasOption("u")) ? cmd.getOptionValue("u")
-                    : config.getBroker();
-            xbmq.connect(Integer.parseInt(baud), port, broker, rootTopic);
+            cmd = parser.parse(getOptions(), args);
         } catch (ParseException ex) {
             System.out.println(ex.getMessage());
             System.exit(1);
         }
+        if (cmd.hasOption("h") || cmd.hasOption("v")) {
+            getHelp();
+            System.exit(0);
+        }
+
+        String port = (cmd.hasOption("p")) ? cmd.getOptionValue("p")
+                : config.getXBeePort();
+        String baud = (cmd.hasOption("b")) ? cmd.getOptionValue("b")
+                : config.getXBeeBaud().toString();
+        String rootTopic = (cmd.hasOption("t")) ? cmd.getOptionValue("t")
+                : config.getRootTopic();
+        String broker = (cmd.hasOption("u")) ? cmd.getOptionValue("u")
+                : config.getBroker();
+
+        XBeeDevice xbee = new XBeeDevice(port, Integer.parseInt(baud));        
+
+        final Xbmq xbmq = new Xbmq(xbee);
 
         /**
          * Setup listeners for unsolicited packets from the XBee network.
-         */
-        XBeeDevice xbee = xbmq.getXBee();
+         */        
         xbee.addDataListener(new XbmqDataReceiveListener(xbmq));
         xbee.addIOSampleListener(new XbmqSampleReceiveListener(xbmq));
 
@@ -87,7 +87,7 @@ public class Main {
         MqttAsyncClient mqtt = xbmq.getMqttClient();
         mqtt.setCallback(new XbmqMqttCallback(xbmq));
         mqtt.subscribe(topics, qos);
-        
+
         /**
          * Add shutdown hooks to stop logger on Ctrl-C.
          */

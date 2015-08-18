@@ -21,42 +21,39 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
- * Global access to XBee device and MQTT broker.  Singleton.
+ * Access to XBee device and MQTT broker.
  */
 public class Xbmq {
     
-    private XBeeDevice xbee;
+    private final XBeeDevice xbee;
     private MqttAsyncClient mqtt;
     private String rootTopic;
-    private String gatewayId;
-                    
+    
+    public Xbmq(XBeeDevice xbee) {
+        this.xbee = xbee;        
+    }
+    
     /**
-     * Connect to devices and brokers.
-     * @param baud XBee serial baud rate (eg. 9600)
-     * @param port XBee serial port name (eg. /dev/ttyUSB0)
+     * Connect to devices and brokers.     
      * @param broker MQTT broker (eg. tcp://broker.name:1883)
      * @param rootTopic Root MQTT topic
      * @throws XBeeException if connection to XBee fails
      * @throws MqttException if connection to MQTT broker fails
      */   
-    public void connect(int baud, String port, String broker, String rootTopic) throws XBeeException, MqttException {   
+    public void connect(String broker, String rootTopic) throws XBeeException, MqttException {   
                 
-        this.rootTopic = rootTopic;
+        if (!xbee.isOpen()) {
+            xbee.open();
+        }
         
-        /**
-         * Open XBee first so we can pass the 64-bit address as the client ID
-         * to MQTT.  
-         */
-        xbee = new XBeeDevice(port, baud);        
-        xbee.open();    
-        String gateway = getGatewayId();
+        this.rootTopic = rootTopic;        
         
         /**
          * Setup last will and testament.
          */
         StringBuilder topicBuilder = new StringBuilder(rootTopic);
         topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        topicBuilder.append(gateway);
+        topicBuilder.append(getGatewayAddress());
         topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         topicBuilder.append("online");
         String lwtTopic = topicBuilder.toString();
@@ -67,7 +64,7 @@ public class Xbmq {
         MqttConnectOptions options = new MqttConnectOptions();
         options.setWill(lwtTopic, "0".getBytes(), 0, true);         
         options.setCleanSession(true);        
-        mqtt = new MqttAsyncClient(broker, getGatewayId()); 
+        mqtt = new MqttAsyncClient(broker, getGatewayAddress().toString()); 
         mqtt.connect(options).waitForCompletion();
         
         /**
@@ -86,7 +83,7 @@ public class Xbmq {
     
     public void connect() throws XBeeException, MqttException {
         XbmqConfig config = new XbmqConfig();
-        connect(config.getXBeeBaud(), config.getXBeePort(), config.getBroker(), config.getRootTopic());
+        connect(config.getBroker(), config.getRootTopic());
     }
     
     /**
@@ -98,14 +95,8 @@ public class Xbmq {
      * 
      */
     
-    public String getGatewayId() {
-        if (xbee == null) {
-            return XBee64BitAddress.UNKNOWN_ADDRESS.toString();
-        }
-        if ((gatewayId == null) || gatewayId.isEmpty()) {
-            gatewayId = xbee.get64BitAddress().toString();
-        }
-        return gatewayId;
+    public XBee64BitAddress getGatewayAddress() {                
+            return xbee.get64BitAddress();        
     }
     
     /**
@@ -219,7 +210,7 @@ public class Xbmq {
         StringBuilder builder = new StringBuilder();
         builder.append(this.getRootTopic());
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(this.getGatewayId());
+        builder.append(this.getGatewayAddress());
         return builder.toString();
     }
     
@@ -234,7 +225,7 @@ public class Xbmq {
         StringBuilder builder = new StringBuilder();
         builder.append(this.getRootTopic());
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(this.getGatewayId());
+        builder.append(this.getGatewayAddress());
         builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
         builder.append(address.toString());
         return builder.toString();
