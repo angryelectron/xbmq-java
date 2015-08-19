@@ -44,7 +44,7 @@ public class XBeeDataMessage implements XBeeMessage {
     @Override
     public void send(String topic, MqttMessage message) throws XBeeException {
         XBeeDevice xbee = xbmq.getXBee();
-        XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);
+        XBee64BitAddress address = new XBee64BitAddress(XbmqTopic.parseAddress(topic));
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
         xbee.sendData(rxd, message.getPayload());
     }

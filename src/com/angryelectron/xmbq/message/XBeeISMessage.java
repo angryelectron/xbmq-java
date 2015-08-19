@@ -35,7 +35,7 @@ public class XBeeISMessage implements XBeeMessage {
     @Override
     public void send(String topic, MqttMessage mm) throws Exception {
         XBeeDevice xbee = xbmq.getXBee();
-        XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);
+        XBee64BitAddress address = new XBee64BitAddress(XbmqTopic.parseAddress(topic));
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
         IOSample sample = rxd.readIOSample();
         

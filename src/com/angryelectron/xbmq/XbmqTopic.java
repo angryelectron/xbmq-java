@@ -18,6 +18,8 @@ public class XbmqTopic {
     private static final Pattern topicPattern = Pattern.compile("(.*\\/)?([0-9a-fA-F]{16})\\/([0-9a-fA-F]{16})(\\/.)*");
     private final String gw;
     private final String root;
+    
+    //TODO: turn these into an enumeration?
     public static final String ATPUBTOPIC = "atOut";
     public static final String ATSUBTOPIC = "atIn";
     public static final String DATAPUBTOPIC = "dataOut";

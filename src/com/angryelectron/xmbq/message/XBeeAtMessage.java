@@ -63,8 +63,8 @@ public class XBeeAtMessage implements XBeeMessage {
      */
     @Override
     public void send(String topic, MqttMessage message) throws Exception {
-        XBeeDevice xbee = xbmq.getXBee();
-        XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);
+        XBeeDevice xbee = xbmq.getXBee();        
+        XBee64BitAddress address = new XBee64BitAddress(XbmqTopic.parseAddress(topic));
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
         String msg = new String(message.getPayload(), StandardCharsets.UTF_8);
         if (msg.isEmpty()) {
