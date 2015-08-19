@@ -58,8 +58,7 @@ public class Xbmq {
         MqttConnectOptions options = new MqttConnectOptions();
         options.setWill(topics.pubOnline(), "0".getBytes(), 0, true);         
         options.setCleanSession(true);                
-        IMqttToken token = mqtt.connect(options);
-        token.waitForCompletion();
+        mqtt.connect(options).waitForCompletion();        
         
         /**
          * Set online status.

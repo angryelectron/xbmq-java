@@ -59,9 +59,11 @@ public class Main {
         String broker = (cmd.hasOption("u")) ? cmd.getOptionValue("u")
                 : config.getBroker();
 
-        XBeeDevice xbee = new XBeeDevice(port, Integer.parseInt(baud));        
+        XBeeDevice xbee = new XBeeDevice(port, Integer.parseInt(baud)); 
+        xbee.open();
         MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString()); 
-        final Xbmq xbmq = new Xbmq(xbee, mqtt, rootTopic);        
+        final Xbmq xbmq = new Xbmq(xbee, mqtt, rootTopic);   
+        xbmq.connectMqtt();
 
         /**
          * Setup listeners for unsolicited packets from the XBee network.
