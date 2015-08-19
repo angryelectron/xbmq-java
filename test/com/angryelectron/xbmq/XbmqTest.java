@@ -7,12 +7,18 @@ package com.angryelectron.xbmq;
 
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.models.XBee64BitAddress;
-import java.util.Arrays;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -23,109 +29,163 @@ public class XbmqTest {
     
     private static final XBee64BitAddress testGatewayAddress = 
             XBee64BitAddress.BROADCAST_ADDRESS;
-    XBeeDevice xbee;
+    private static XBee64BitAddress testDeviceAddress = new XBee64BitAddress("ABCDABCD12345678");
+    private XBeeDevice xbee;
+    private MqttAsyncClient mqtt;
     
     /**
-     * Setup Mock XBee device.
+     * Setup Mock devices.
      */
     @Before
     public void setUp() {
         xbee = mock(XBeeDevice.class);
+        mqtt = mock(MqttAsyncClient.class);
         when(xbee.get64BitAddress()).thenReturn(testGatewayAddress);
+        when(xbee.isOpen()).thenReturn(true);
+        when(mqtt.getClientId()).thenReturn(testGatewayAddress.toString());
     }
-       
+             
     @Test
-    public void testConnectWithOptions() throws Exception {
-        //TODO: subscribe and check status of 'online' topic.
-        String testBroker = "tcp://test.mosquitto.org:1883";
-        String testTopic = "testTopic";                
-        Xbmq xbmq = new Xbmq(xbee);
-        xbmq.connect(testBroker, testTopic);
-        assertTrue("xmbq connect (options) failed", xbmq.getMqttClient().isConnected());
-        xbmq.disconnect();
-        assertFalse("xmbq disconnect (options) failed", xbmq.getMqttClient().isConnected());
+    public void testConstructor() {
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
     }
     
-    @Test
-    public void testConnectWithDefaults() throws Exception {        
-        Xbmq xbmq = new Xbmq(xbee);
-        xbmq.connect();
-        assertTrue("xmbq connect (default) failed", xbmq.getMqttClient().isConnected());        
-        
-        MqttSyncSubscribe sub = new MqttSyncSubscribe(xbmq.getMqttClient());
-        byte[] actualPayload = sub.getPayload(xbmq.getLwtTopic(), 10);
-        byte[] expectedPayload = new byte[]{'1'};
-        
-        try {
-            assertTrue("will-and-testament not published", Arrays.equals(expectedPayload, actualPayload));
-        } finally {        
-            xbmq.disconnect();
-            assertFalse("xmbq disconnect (default) failed", xbmq.getMqttClient().isConnected());
-        }
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorRequiresValidMqtt() throws Exception {        
+        mqtt = null;
+        Xbmq xbmq = new Xbmq(xbee, mqtt);        
     }            
     
-    @Test
-    public void testBytesToString() {
-        byte[] testBytes = {0x00, 0x01, 0x7F};
-        String expectedResult = "00017f";
-        String actualResult = XbmqUtils.bytesToString(testBytes);
-        assertEquals("bytesToString failed", expectedResult, actualResult);
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorRequiresValidXBee() throws Exception {
+        xbee = null;
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorRequiresOpenXBee() throws Exception {
+        when(xbee.isOpen()).thenReturn(false);
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorRequiresClientId() {
+        when(mqtt.getClientId()).thenReturn(null);
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorClientIdNotEmpty() {
+        when(mqtt.getClientId()).thenReturn("");
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
     }
     
     @Test
-    public void testGetAddressFromTopic() {
-        Xbmq xbmq = new Xbmq(xbee);
-        
-        String topic = "rootTopic/0000000000000000/1111111111111111/subtopic";
-        XBee64BitAddress actualAddress = xbmq.getAddressFromTopic(topic);
-        XBee64BitAddress expectedAddress = new XBee64BitAddress("1111111111111111");
-        assertEquals("address mismatch", expectedAddress, actualAddress);        
-        
-        topic = "rootTopic/0000000000000000/badaddress/subtopic";
-        actualAddress = xbmq.getAddressFromTopic(topic);
-        expectedAddress = XBee64BitAddress.UNKNOWN_ADDRESS;
-        assertEquals("invalid address not detetcted", expectedAddress, actualAddress);
+    public void testRootTopicValidWhenNotSet() {
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        assert(xbmq.getRootTopic() != null);
     }
     
     @Test
-    public void testGetGatewayAddressFromTopic() {
-        Xbmq xbmq = new Xbmq(xbee);
+    public void testConnect() throws MqttException {
+        IMqttToken token = mock(IMqttToken.class);
+        when(mqtt.connect((MqttConnectOptions) anyObject())).thenReturn(token);
+        doNothing().when(token).waitForCompletion();        
         
-        String topic = "rootTopic/0000000000000000/1111111111111111/subtopic";
-        XBee64BitAddress actualAddress = xbmq.getGatewayFromTopic(topic);
-        XBee64BitAddress expectedAddress = new XBee64BitAddress("0000000000000000");
-        assertEquals("address mismatch", expectedAddress, actualAddress);        
-        
-        topic = "rootTopic/badaddress/1111111111111111/subtopic";
-        actualAddress = xbmq.getAddressFromTopic(topic);
-        expectedAddress = XBee64BitAddress.UNKNOWN_ADDRESS;
-        assertEquals("invalid address not detetcted", expectedAddress, actualAddress);
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        xbmq.connectMqtt();
+        verify(mqtt).connect((MqttConnectOptions) anyObject());        
+    }
+    
+    @Test(expected = MqttException.class)
+    public void testConnectWhenAlreadyConnected() throws MqttException {
+        when(mqtt.isConnected()).thenReturn(true);
+        testConnect();
     }
     
     @Test
-    public void testGetDeviceTopic() {
-        Xbmq xbmq = new Xbmq(xbee);
-        XBee64BitAddress deviceAddress = new XBee64BitAddress("1234567812345678");
-        StringBuilder builder = new StringBuilder(xbmq.getRootTopic());
-        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(testGatewayAddress);
-        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(deviceAddress);
-        String expectedDeviceTopic = builder.toString();
-        String actualDeviceTopic = xbmq.getDeviceTopic(deviceAddress);
-        assertEquals("topic mismatch", expectedDeviceTopic, actualDeviceTopic);        
+    public void testDisconnect() throws MqttException {
+        IMqttToken token = mock(IMqttToken.class);
+        when(mqtt.connect((MqttConnectOptions) anyObject())).thenReturn(token);
+        when(mqtt.disconnect()).thenReturn(token);
+        doNothing().when(token).waitForCompletion();   
+        
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        xbmq.connectMqtt();
+        xbmq.disconnect();
+    }
+    
+    @Test
+    public void testDisconnectWhenNotConnected() throws MqttException {
+        IMqttToken token = mock(IMqttToken.class);                
+        when(mqtt.disconnect()).thenReturn(token);
+        doNothing().when(token).waitForCompletion();   
+        
+        Xbmq xbmq = new Xbmq(xbee, mqtt);        
+        when(xbee.isOpen()).thenReturn(false);
+        when(mqtt.isConnected()).thenReturn(false);
+        xbmq.disconnect();
+    }
+    
+    @Test
+    public void testGetLwtTopicWithNoRoot() {
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        String expectedTopic = testGatewayAddress + "/online";
+        String actualTopic = xbmq.getLwtTopic();
+        assertEquals("invalid LWT topic", expectedTopic, actualTopic);
+    }        
+    
+    @Test
+    public void testDisconnectWhenXBeeNotConnected() throws MqttException {
+        IMqttToken token = mock(IMqttToken.class);
+        when(mqtt.disconnect()).thenReturn(token);
+        when(mqtt.connect((MqttConnectOptions) anyObject())).thenReturn(token);
+        doNothing().when(token).waitForCompletion();   
+        
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        xbmq.disconnect();                
+    }
+            
+    @Test
+    public void testGetLwtTopicWithRoot() {
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        xbmq.setRootTopic("testRootTopic");
+        String expectedTopic = "testRootTopic/" + testGatewayAddress + "/online";
+        String actualTopic = xbmq.getLwtTopic();
+        assertEquals("invalid LWT topic", expectedTopic, actualTopic);
     }
     
     @Test
     public void testGetGatewayTopic() {
-        Xbmq xbmq = new Xbmq(xbee);        
-        StringBuilder builder = new StringBuilder(xbmq.getRootTopic());
-        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(testGatewayAddress);        
-        String expectedDeviceTopic = builder.toString();
-        String actualDeviceTopic = xbmq.getGatewayTopic();
-        assertEquals("topic mismatch", expectedDeviceTopic, actualDeviceTopic);        
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        String expectedTopic = testGatewayAddress.toString();
+        String actualTopic = xbmq.getGatewayTopic();
+        assertEquals("invalid gateway topic", expectedTopic, actualTopic);
     }
     
+    @Test
+    public void testGetGatewayTopicWithRoot() {
+        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        xbmq.setRootTopic("rootTopic");
+        String expectedTopic = "rootTopic/" + testGatewayAddress.toString();
+        String actualTopic = xbmq.getGatewayTopic();
+        assertEquals("invalid gateway topic", expectedTopic, actualTopic);
+    }
     
+    @Test
+    public void testGetDeviceTopic() {
+        Xbmq xbmq = new Xbmq(xbee, mqtt);        
+        String expectedTopic = testGatewayAddress + "/" + testDeviceAddress;
+        String actualTopic = xbmq.getDeviceTopic(testDeviceAddress);
+        assertEquals("invalid device topic", expectedTopic, actualTopic);
+    }
+    
+    @Test
+    public void testGetDeviceTopicWithRoot() {
+        Xbmq xbmq = new Xbmq(xbee, mqtt); 
+        xbmq.setRootTopic("rootTopic");
+        String expectedTopic = "rootTopic/" + testGatewayAddress + "/" + testDeviceAddress;
+        String actualTopic = xbmq.getDeviceTopic(testDeviceAddress);
+        assertEquals("invalid device topic", expectedTopic, actualTopic);
+    }            
 }

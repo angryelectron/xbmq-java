@@ -5,6 +5,7 @@
 package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.Xbmq;
+import com.angryelectron.xbmq.XbmqUtils;
 import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.XBeeDevice;
@@ -33,7 +34,7 @@ public class XBeeISMessage implements XBeeMessage {
     @Override
     public void send(String topic, MqttMessage mm) throws Exception {
         XBeeDevice xbee = xbmq.getXBee();
-        XBee64BitAddress address = xbmq.getAddressFromTopic(topic);
+        XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);
         RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
         IOSample sample = rxd.readIOSample();
         

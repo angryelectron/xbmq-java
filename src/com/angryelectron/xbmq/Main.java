@@ -64,8 +64,8 @@ public class Main {
                 : config.getBroker();
 
         XBeeDevice xbee = new XBeeDevice(port, Integer.parseInt(baud));        
-
-        final Xbmq xbmq = new Xbmq(xbee);
+        MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString()); 
+        final Xbmq xbmq = new Xbmq(xbee, mqtt);
 
         /**
          * Setup listeners for unsolicited packets from the XBee network.
@@ -83,8 +83,7 @@ public class Main {
             new MqttIOMessage(xbmq).getSubscriptionTopic()
         };
         int[] qos = {0, 0, 0, 0};
-
-        MqttAsyncClient mqtt = xbmq.getMqttClient();
+        
         mqtt.setCallback(new XbmqMqttCallback(xbmq));
         mqtt.subscribe(topics, qos);
 
