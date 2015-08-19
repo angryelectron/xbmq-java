@@ -61,13 +61,9 @@ public class XbmqDiscoveryListener implements IDiscoveryListener {
      */
     @Override
     public void discoveryFinished(String error) {
-        MqttDiscoveryMessage message = new MqttDiscoveryMessage(xbmq);
-        try {
-            if (error != null) {
-                message.send(error, format);
-            } else {
-                message.send(devices, format);
-            }
+        MqttDiscoveryMessage message = new MqttDiscoveryMessage(xbmq);        
+        try {        
+            message.send(devices, format);
         } catch (MqttException ex) {
             Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
         }

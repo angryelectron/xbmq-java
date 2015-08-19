@@ -5,6 +5,7 @@
 package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.Xbmq;
+import com.angryelectron.xbmq.XbmqTopic;
 import com.angryelectron.xbmq.listener.XbmqDiscoveryListener;
 import com.angryelectron.xmbq.message.MqttDiscoveryMessage.Format;
 import com.digi.xbee.api.XBeeDevice;
@@ -35,7 +36,7 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
      */
     @Override
     public boolean subscribesTo(String topic) {
-        return topic.contains(MqttDiscoveryMessage.SUBTOPIC);
+        return topic.contains(XbmqTopic.DISCOSUBTOPIC);
     }
 
     /**

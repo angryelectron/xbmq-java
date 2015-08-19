@@ -16,10 +16,8 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 /**
  * Format and publish node-discovery results as an MQTT message. 
  */
-public class MqttDiscoveryMessage implements MqttBaseMessage {
-    
-    static final String PUBTOPIC = "discoveryResponse";        
-    static final String SUBTOPIC = "discoveryRequest";
+public class MqttDiscoveryMessage {
+        
     private final Xbmq xbmq;
     
     public MqttDiscoveryMessage(Xbmq xbmq) {
@@ -52,48 +50,10 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
                 message.setPayload(toJSON(devices).getBytes());
                 break;
         }
-        String topic = getPublishTopic(XBee64BitAddress.UNKNOWN_ADDRESS);
+        String topic = xbmq.getTopics().pubDiscovery();
         xbmq.publishMqtt(topic, message);        
     }
-
-    /**
-     * Publish an error message that occurred during discovery.
-     * @param error The error to publish.
-     * @param format The message format.
-     * @throws MqttException if the message cannot be published.
-     */
-    public void send(String error, Format format) throws MqttException {
-        //TODO: make error message obey response format
-        MqttMessage message = new MqttMessage(error.getBytes());
-        String topic = getPublishTopic(XBee64BitAddress.UNKNOWN_ADDRESS);
-        xbmq.publishMqtt(topic, message);        
-    }
-                        
-    /**
-     * Get the MQTT topic used for publishing discovery results.
-     * @param address Not used.  Send null or XBee64BitAddress.UNKNOWN_ADDRESS.
-     * @return rootTopic/gateway-address/discoveryResponse
-     */
-    @Override
-    public String getPublishTopic(XBee64BitAddress address) {
-        StringBuilder builder = new StringBuilder(xbmq.getGatewayTopic());        
-        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(PUBTOPIC);
-        return builder.toString();
-    }
-    
-    /**
-     * Get the MQTT topic used to listen for incoming discovery requests.
-     * @return rootTopic/gateway-address/discoveryRequest
-     */
-    @Override
-    public  String getSubscriptionTopic() {
-        StringBuilder builder = new StringBuilder(xbmq.getGatewayTopic());        
-        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(SUBTOPIC);
-        return builder.toString();
-    }
-    
+                                   
     /**
      * Build a JSON-formatted list.
      * @param devices List of devices to format.

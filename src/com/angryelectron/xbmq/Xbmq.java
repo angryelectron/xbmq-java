@@ -15,7 +15,6 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  * Access to XBee device and MQTT broker.
@@ -24,9 +23,10 @@ public class Xbmq {
     
     private final XBeeDevice xbee;
     private final MqttAsyncClient mqtt;
-    private String rootTopic = "";    
+    private String rootTopic = "";  
+    private final XbmqTopic topics;
     
-    public Xbmq(XBeeDevice xbee, MqttAsyncClient mqtt) {
+    public Xbmq(XBeeDevice xbee, MqttAsyncClient mqtt, String rootTopic) {
         if ((mqtt == null) || (xbee == null)) {
             throw new IllegalArgumentException("XBee and/or Mqtt cannot be null.");
         }
@@ -38,14 +38,12 @@ public class Xbmq {
         }
         this.xbee = xbee;        
         this.mqtt = mqtt;
+        this.rootTopic = rootTopic;
+        this.topics = new XbmqTopic(rootTopic, mqtt.getClientId());
     }
-    
-    public void setRootTopic(String topic) {
-        this.rootTopic = topic;
-    }
-        
-    public String getRootTopic() {        
-            return rootTopic;        
+                    
+    public XbmqTopic getTopics() {
+        return topics;
     }
     
     /**
@@ -58,7 +56,7 @@ public class Xbmq {
         }
         
         MqttConnectOptions options = new MqttConnectOptions();
-        options.setWill(getLwtTopic(), "0".getBytes(), 0, true);         
+        options.setWill(topics.pubOnline(), "0".getBytes(), 0, true);         
         options.setCleanSession(true);                
         IMqttToken token = mqtt.connect(options);
         token.waitForCompletion();
@@ -66,21 +64,9 @@ public class Xbmq {
         /**
          * Set online status.
          */        
-        this.publishMqtt(getLwtTopic(), new MqttMessage("1".getBytes()));
+        this.publishMqtt(topics.pubOnline(), new MqttMessage("1".getBytes()));
     }
-    
-    public String getLwtTopic() {
-        StringBuilder topicBuilder = new StringBuilder();
-        if (!rootTopic.isEmpty()) {
-            topicBuilder.append(rootTopic);
-            topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        }        
-        topicBuilder.append(getGatewayAddress());
-        topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        topicBuilder.append("online");
-        return topicBuilder.toString();        
-    }
-                
+                        
     public XBee64BitAddress getGatewayAddress() {        
         return new XBee64BitAddress(mqtt.getClientId());        
     }
@@ -119,34 +105,5 @@ public class Xbmq {
         
         });
     }
-            
-    /**
-     * Build an Xbmq topic using the gateway address.
-     * @return Topic using the format: rootTopic/64-bit-gateway-address.
-     */
-    
-    public String getGatewayTopic() {                
-        StringBuilder builder = new StringBuilder();
-        if (!rootTopic.isEmpty()) {
-            builder.append(rootTopic);
-            builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        }
-        builder.append(this.getGatewayAddress());
-        return builder.toString();
-    }
-    
-    /**
-     * Build and Xbmq topic using the gateway and device address.
-     * @param address 64-bit address of the device to include.
-     * @return Topic using the format:  
-     * rootTopic/64bit-gateway-address/64bit-device-address
-     */
-    
-    public String getDeviceTopic(XBee64BitAddress address) {                        
-        StringBuilder builder = new StringBuilder(getGatewayTopic());        
-        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(address.toString());
-        return builder.toString();
-    }
-    
+                
 }

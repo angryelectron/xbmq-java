@@ -5,6 +5,7 @@
 package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.Xbmq;
+import com.angryelectron.xbmq.XbmqTopic;
 import com.angryelectron.xbmq.XbmqUtils;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.XBeeDevice;
@@ -31,7 +32,7 @@ public class XBeeDataMessage implements XBeeMessage {
      */
     @Override
     public boolean subscribesTo(String topic) {
-        return topic.contains(MqttDataMessage.SUBTOPIC);
+        return topic.contains(XbmqTopic.DATASUBTOPIC);
     }
 
     /**

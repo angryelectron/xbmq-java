@@ -6,10 +6,6 @@ package com.angryelectron.xbmq;
 import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.angryelectron.xbmq.listener.XbmqDataReceiveListener;
 import com.angryelectron.xbmq.listener.XbmqMqttCallback;
-import com.angryelectron.xmbq.message.MqttAtMessage;
-import com.angryelectron.xmbq.message.MqttDataMessage;
-import com.angryelectron.xmbq.message.MqttDiscoveryMessage;
-import com.angryelectron.xmbq.message.MqttIOMessage;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import org.apache.commons.cli.CommandLine;
@@ -65,7 +61,7 @@ public class Main {
 
         XBeeDevice xbee = new XBeeDevice(port, Integer.parseInt(baud));        
         MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString()); 
-        final Xbmq xbmq = new Xbmq(xbee, mqtt);
+        final Xbmq xbmq = new Xbmq(xbee, mqtt, rootTopic);        
 
         /**
          * Setup listeners for unsolicited packets from the XBee network.
@@ -75,12 +71,13 @@ public class Main {
 
         /**
          * Subscribe to topics.
-         */
+         */        
+        XbmqTopic t = xbmq.getTopics();
         String[] topics = {
-            new MqttDataMessage(xbmq).getSubscriptionTopic(),
-            new MqttAtMessage(xbmq).getSubscriptionTopic(),
-            new MqttDiscoveryMessage(xbmq).getSubscriptionTopic(),
-            new MqttIOMessage(xbmq).getSubscriptionTopic()
+            t.subAt(),
+            t.subData(),
+            t.subDiscovery(),
+            t.subIOUpdate(null)
         };
         int[] qos = {0, 0, 0, 0};
         

@@ -44,55 +44,44 @@ public class XbmqTest {
         when(xbee.isOpen()).thenReturn(true);
         when(mqtt.getClientId()).thenReturn(testGatewayAddress.toString());
     }
-             
-    @Test
-    public void testConstructor() {
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
-    }
-    
+                     
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorRequiresValidMqtt() throws Exception {        
         mqtt = null;
-        Xbmq xbmq = new Xbmq(xbee, mqtt);        
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null);        
     }            
     
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorRequiresValidXBee() throws Exception {
         xbee = null;
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorRequiresOpenXBee() throws Exception {
         when(xbee.isOpen()).thenReturn(false);
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorRequiresClientId() {
         when(mqtt.getClientId()).thenReturn(null);
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorClientIdNotEmpty() {
         when(mqtt.getClientId()).thenReturn("");
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
     }
-    
-    @Test
-    public void testRootTopicValidWhenNotSet() {
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
-        assert(xbmq.getRootTopic() != null);
-    }
-    
+            
     @Test
     public void testConnect() throws MqttException {
         IMqttToken token = mock(IMqttToken.class);
         when(mqtt.connect((MqttConnectOptions) anyObject())).thenReturn(token);
         doNothing().when(token).waitForCompletion();        
         
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
         xbmq.connectMqtt();
         verify(mqtt).connect((MqttConnectOptions) anyObject());        
     }
@@ -110,7 +99,7 @@ public class XbmqTest {
         when(mqtt.disconnect()).thenReturn(token);
         doNothing().when(token).waitForCompletion();   
         
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
         xbmq.connectMqtt();
         xbmq.disconnect();
     }
@@ -121,20 +110,12 @@ public class XbmqTest {
         when(mqtt.disconnect()).thenReturn(token);
         doNothing().when(token).waitForCompletion();   
         
-        Xbmq xbmq = new Xbmq(xbee, mqtt);        
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null);        
         when(xbee.isOpen()).thenReturn(false);
         when(mqtt.isConnected()).thenReturn(false);
         xbmq.disconnect();
     }
-    
-    @Test
-    public void testGetLwtTopicWithNoRoot() {
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
-        String expectedTopic = testGatewayAddress + "/online";
-        String actualTopic = xbmq.getLwtTopic();
-        assertEquals("invalid LWT topic", expectedTopic, actualTopic);
-    }        
-    
+            
     @Test
     public void testDisconnectWhenXBeeNotConnected() throws MqttException {
         IMqttToken token = mock(IMqttToken.class);
@@ -142,50 +123,8 @@ public class XbmqTest {
         when(mqtt.connect((MqttConnectOptions) anyObject())).thenReturn(token);
         doNothing().when(token).waitForCompletion();   
         
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
         xbmq.disconnect();                
-    }
-            
-    @Test
-    public void testGetLwtTopicWithRoot() {
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
-        xbmq.setRootTopic("testRootTopic");
-        String expectedTopic = "testRootTopic/" + testGatewayAddress + "/online";
-        String actualTopic = xbmq.getLwtTopic();
-        assertEquals("invalid LWT topic", expectedTopic, actualTopic);
-    }
-    
-    @Test
-    public void testGetGatewayTopic() {
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
-        String expectedTopic = testGatewayAddress.toString();
-        String actualTopic = xbmq.getGatewayTopic();
-        assertEquals("invalid gateway topic", expectedTopic, actualTopic);
-    }
-    
-    @Test
-    public void testGetGatewayTopicWithRoot() {
-        Xbmq xbmq = new Xbmq(xbee, mqtt);
-        xbmq.setRootTopic("rootTopic");
-        String expectedTopic = "rootTopic/" + testGatewayAddress.toString();
-        String actualTopic = xbmq.getGatewayTopic();
-        assertEquals("invalid gateway topic", expectedTopic, actualTopic);
-    }
-    
-    @Test
-    public void testGetDeviceTopic() {
-        Xbmq xbmq = new Xbmq(xbee, mqtt);        
-        String expectedTopic = testGatewayAddress + "/" + testDeviceAddress;
-        String actualTopic = xbmq.getDeviceTopic(testDeviceAddress);
-        assertEquals("invalid device topic", expectedTopic, actualTopic);
-    }
-    
-    @Test
-    public void testGetDeviceTopicWithRoot() {
-        Xbmq xbmq = new Xbmq(xbee, mqtt); 
-        xbmq.setRootTopic("rootTopic");
-        String expectedTopic = "rootTopic/" + testGatewayAddress + "/" + testDeviceAddress;
-        String actualTopic = xbmq.getDeviceTopic(testDeviceAddress);
-        assertEquals("invalid device topic", expectedTopic, actualTopic);
-    }            
+    }             
+        
 }

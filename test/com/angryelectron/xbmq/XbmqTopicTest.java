@@ -6,7 +6,6 @@
 package com.angryelectron.xbmq;
 
 import com.digi.xbee.api.io.IOLine;
-import com.digi.xbee.api.models.XBee64BitAddress;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.junit.Before;
@@ -99,6 +98,21 @@ public class XbmqTopicTest {
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
     
+    @Test
+    public void testGetSubIOUpdate() {        
+        String expectedTopic = "rootTopic/1234567812345678/ABCDABCDABCDABCD/ioUpdate";
+        String actualTopic = topic.subIOUpdate(device);
+        assertEquals("topic mismatch", expectedTopic, actualTopic);
+    }
+    
+    @Test
+    public void testGetSubIOUpdateBroadcast() {
+        IOLine line = IOLine.DIO0_AD0;
+        String expectedTopic = "rootTopic/1234567812345678/+/ioUpdate";
+        String actualTopic = topic.subIOUpdate(null);
+        assertEquals("topic mismatch", expectedTopic, actualTopic);
+    }
+    
     @Test(expected = IllegalArgumentException.class)
     public void testGetSubIOWithBadLine() {
         String line = "DIO1234/PWM3";
@@ -179,4 +193,5 @@ public class XbmqTopicTest {
         String actualAddress = XbmqTopic.parseAddress(subAtTopic);
         assertEquals("invalid address", expectedAddress, actualAddress);
     }
+        
 }

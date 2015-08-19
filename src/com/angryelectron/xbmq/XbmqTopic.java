@@ -18,16 +18,16 @@ public class XbmqTopic {
     private static final Pattern topicPattern = Pattern.compile("(.*\\/)?([0-9a-fA-F]{16})\\/([0-9a-fA-F]{16})(\\/.)*");
     private final String gw;
     private final String root;
-    private final String ATPUBTOPIC = "atOut";
-    private final String ATSUBTOPIC = "atIn";
-    private final String DATAPUBTOPIC = "dataOut";
-    private final String DATASUBTOPIC = "dataIn";
-    private final String IOPUBTOPIC = "io";
-    private final String IOSUBTOPIC = "ioUpdate";
-    private final String DISCOPUBTOPIC = "discoveryResponse";
-    private final String DISCOSUBTOPIC = "discoveryRequest";
-    private final String ONLINEPUBTOPIC = "online";
-    private final String ONLINESUBTOPIC = ONLINEPUBTOPIC;
+    public static final String ATPUBTOPIC = "atOut";
+    public static final String ATSUBTOPIC = "atIn";
+    public static final String DATAPUBTOPIC = "dataOut";
+    public static final String DATASUBTOPIC = "dataIn";
+    public static final String IOPUBTOPIC = "io";
+    public static final String IOSUBTOPIC = "ioUpdate";
+    public static final String DISCOPUBTOPIC = "discoveryResponse";
+    public static final String DISCOSUBTOPIC = "discoveryRequest";
+    public static final String ONLINEPUBTOPIC = "online";
+    public static final String ONLINESUBTOPIC = ONLINEPUBTOPIC;
     
     public XbmqTopic(String rootTopic, String gw) {        
         if (rootTopic == null) {
@@ -116,7 +116,11 @@ public class XbmqTopic {
     }
 
     public String subIO(String device, String line) {
-        return ioTopic(device, line);
+        return ioTopic(device, line);        
+    }
+    
+    public String subIOUpdate(String device) {
+        return deviceTopic(device, IOSUBTOPIC);
     }
 
     public String subDiscovery() {
@@ -138,13 +142,13 @@ public class XbmqTopic {
             return gwTopic(ONLINESUBTOPIC);
         }
     }
-    
+            
     public static String parseAddress(String topic) {
         Matcher matcher = topicPattern.matcher(topic);
         if (!matcher.find()) {
             throw new IllegalArgumentException("Invalid topic: " + topic);
         }
-        return new String(matcher.group(3));
+        return matcher.group(3);
     }
-
+        
 }
