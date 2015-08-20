@@ -8,7 +8,6 @@ import com.digi.xbee.api.io.IOLine;
 import com.digi.xbee.api.models.XBee64BitAddress;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  * Publish XBee IO data as MQTT messages.
