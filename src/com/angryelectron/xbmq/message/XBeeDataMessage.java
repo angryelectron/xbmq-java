@@ -1,15 +1,14 @@
 /*
- * Xbmq - XBee / MQTT Gateway 
+ * XbmqProvider - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
 import com.angryelectron.xbmq.Xbmq;
-import com.angryelectron.xbmq.XbmqUtils;
+import com.angryelectron.xbmq.XbmqTopic;
 import com.digi.xbee.api.RemoteXBeeDevice;
-import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
-import com.digi.xbee.api.models.XBee64BitAddress;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
@@ -18,6 +17,12 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  */
 public class XBeeDataMessage implements XBeeMessage {
 
+    private final Xbmq xbmq;
+    
+    public XBeeDataMessage(Xbmq xbmq) {
+        this.xbmq = xbmq;
+    }
+    
     /**
      * Check if this object can handle this message.
      * @param topic The topic to check.
@@ -25,20 +30,26 @@ public class XBeeDataMessage implements XBeeMessage {
      */
     @Override
     public boolean subscribesTo(String topic) {
-        return topic.contains(MqttDataMessage.SUBTOPIC);
+        return topic.contains(XbmqTopic.DATASUBTOPIC);
     }
 
     /**
      * Send a data packet to an XBee device.
-     * @param topic topic
+     * @param rxd
      * @param message message 
      * @throws XBeeException if the data cannot be sent.
      */
     @Override
-    public void send(String topic, MqttMessage message) throws XBeeException {
-        XBeeDevice xbee = Xbmq.getInstance().getXBee();
-        XBee64BitAddress address = XbmqUtils.getAddressFromTopic(topic);
-        RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
-        xbee.sendData(rxd, message.getPayload());
+    public void transmit(RemoteXBeeDevice rxd, MqttMessage message) throws XBeeException {        
+        if (message.getPayload().length > 0) {
+            xbmq.getXBee().sendData(rxd, message.getPayload());
+        }
+    }
+
+    @Override
+    public void publish() throws MqttException {
+        /**
+         * Any response will be published by XbmqDataReceiveListener.
+         */
     }
 }

@@ -1,12 +1,14 @@
 /*
- * Xbmq - XBee / MQTT Gateway 
+ * XbmqProvider - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
 import com.angryelectron.xbmq.Xbmq;
+import com.angryelectron.xbmq.XbmqTopic;
 import com.angryelectron.xbmq.listener.XbmqDiscoveryListener;
-import com.angryelectron.xmbq.message.MqttDiscoveryMessage.Format;
+import com.angryelectron.xbmq.message.MqttDiscoveryMessage.Format;
+import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.XBeeNetwork;
 import com.digi.xbee.api.exceptions.XBeeException;
@@ -14,12 +16,19 @@ import com.digi.xbee.api.models.XBeeProtocol;
 import java.nio.charset.StandardCharsets;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
  * Discover the XBee network attached to the gateway.
  */
 public class XBeeDiscoveryMessage implements XBeeMessage {
+
+    private final Xbmq xbmq;
+
+    public XBeeDiscoveryMessage(Xbmq xbmq) {
+        this.xbmq = xbmq;
+    }
 
     /**
      * Check if an MQTT message can be handled by this class.
@@ -29,14 +38,14 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
      */
     @Override
     public boolean subscribesTo(String topic) {
-        return topic.contains(MqttDiscoveryMessage.SUBTOPIC);
+        return topic.contains(XbmqTopic.DISCOSUBTOPIC);
     }
 
     /**
      * Discover all remote XBee devices on the same network as the local XBee
      * device.
      *
-     * @param topic topic
+     * @param rxb Null
      * @param message The desired response format. If an unknown format is
      * specified, JSON will be used.
      * @see <a href="https://docs.digi.com/display/XBJLIB/Discover+the+network">
@@ -44,8 +53,9 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
      * @throws XBeeException
      */
     @Override
-    public void send(String topic, MqttMessage message) throws Exception {
-        XBeeDevice xbee = Xbmq.getInstance().getXBee();
+    public void transmit(RemoteXBeeDevice rxb, MqttMessage message) throws XBeeException {
+
+        XBeeDevice xbee = xbmq.getXBee();
 
         /**
          * Determine response format.
@@ -58,7 +68,7 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
             Logger.getLogger(this.getClass()).log(Level.WARN, fmt + ": invalid format, using default.");
             format = Format.JSON;
         }
-        XbmqDiscoveryListener listener = new XbmqDiscoveryListener(format);
+        XbmqDiscoveryListener listener = new XbmqDiscoveryListener(xbmq, format);
 
         /**
          * Start async discovery.
@@ -91,5 +101,14 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
             }
             network.removeDiscoveryListener(listener);
         }
+    }
+
+    @Override
+    public void publish() throws MqttException {
+        /**
+         * Publishing is done asynchronously by the DiscoveryListener. We could
+         * wait for the results and not publish until this call, but there is no
+         * obvious benefit from that.
+         */
     }
 }

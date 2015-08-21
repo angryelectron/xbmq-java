@@ -3,23 +3,24 @@
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
-import com.angryelectron.xbmq.XbmqUtils;
+import com.angryelectron.xbmq.Xbmq;
 import com.digi.xbee.api.RemoteXBeeDevice;
-import com.digi.xbee.api.models.XBee64BitAddress;
 import java.util.List;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  * Format and publish node-discovery results as an MQTT message. 
  */
-public class MqttDiscoveryMessage implements MqttBaseMessage {
+public class MqttDiscoveryMessage {
+        
+    private final Xbmq xbmq;
     
-    static final String PUBTOPIC = "discoveryResponse";        
-    static final String SUBTOPIC = "discoveryRequest";
+    public MqttDiscoveryMessage(Xbmq xbmq) {
+        this.xbmq = xbmq;
+    }
     
     /**
      * Discovery results are returned in an MQTT message using one of
@@ -47,48 +48,10 @@ public class MqttDiscoveryMessage implements MqttBaseMessage {
                 message.setPayload(toJSON(devices).getBytes());
                 break;
         }
-        String topic = getPublishTopic(XBee64BitAddress.UNKNOWN_ADDRESS);
-        XbmqUtils.publishMqtt(topic, message);        
+        String topic = xbmq.getTopics().pubDiscovery();
+        xbmq.publishMqtt(topic, message);        
     }
-
-    /**
-     * Publish an error message that occurred during discovery.
-     * @param error The error to publish.
-     * @param format The message format.
-     * @throws MqttException if the message cannot be published.
-     */
-    public void send(String error, Format format) throws MqttException {
-        //TODO: make error message obey response format
-        MqttMessage message = new MqttMessage(error.getBytes());
-        String topic = getPublishTopic(XBee64BitAddress.UNKNOWN_ADDRESS);
-        XbmqUtils.publishMqtt(topic, message);        
-    }
-                        
-    /**
-     * Get the MQTT topic used for publishing discovery results.
-     * @param address Not used.  Send null or XBee64BitAddress.UNKNOWN_ADDRESS.
-     * @return rootTopic/gateway-address/discoveryResponse
-     */
-    @Override
-    public String getPublishTopic(XBee64BitAddress address) {
-        StringBuilder builder = new StringBuilder(XbmqUtils.getGatewayTopic());        
-        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(PUBTOPIC);
-        return builder.toString();
-    }
-    
-    /**
-     * Get the MQTT topic used to listen for incoming discovery requests.
-     * @return rootTopic/gateway-address/discoveryRequest
-     */
-    @Override
-    public  String getSubscriptionTopic() {
-        StringBuilder builder = new StringBuilder(XbmqUtils.getGatewayTopic());        
-        builder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        builder.append(SUBTOPIC);
-        return builder.toString();
-    }
-    
+                                   
     /**
      * Build a JSON-formatted list.
      * @param devices List of devices to format.

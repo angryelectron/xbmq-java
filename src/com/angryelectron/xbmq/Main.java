@@ -6,10 +6,6 @@ package com.angryelectron.xbmq;
 import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.angryelectron.xbmq.listener.XbmqDataReceiveListener;
 import com.angryelectron.xbmq.listener.XbmqMqttCallback;
-import com.angryelectron.xmbq.message.MqttAtMessage;
-import com.angryelectron.xmbq.message.MqttDataMessage;
-import com.angryelectron.xmbq.message.MqttDiscoveryMessage;
-import com.angryelectron.xmbq.message.MqttIOMessage;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import org.apache.commons.cli.CommandLine;
@@ -41,52 +37,55 @@ public class Main {
     public static void main(String[] args) throws XBeeException, MqttException {
 
         XbmqConfig config = new XbmqConfig();
-        Xbmq xbmq = Xbmq.getInstance();
+        CommandLine cmd = null;
         try {
             CommandLineParser parser = new PosixParser();
-            CommandLine cmd = parser.parse(getOptions(), args);
-
-            if (cmd.hasOption("h") || cmd.hasOption("v")) {
-                getHelp();
-                System.exit(0);
-            }
-
-            String port = (cmd.hasOption("p")) ? cmd.getOptionValue("p")
-                    : config.getXBeePort();
-            String baud = (cmd.hasOption("b")) ? cmd.getOptionValue("b")
-                    : config.getXBeeBaud().toString();
-            String rootTopic = (cmd.hasOption("t")) ? cmd.getOptionValue("t")
-                    : config.getRootTopic();
-            String broker = (cmd.hasOption("u")) ? cmd.getOptionValue("u")
-                    : config.getBroker();
-            xbmq.connect(Integer.parseInt(baud), port, broker, rootTopic);
+            cmd = parser.parse(getOptions(), args);
         } catch (ParseException ex) {
             System.out.println(ex.getMessage());
             System.exit(1);
         }
+        if (cmd.hasOption("h") || cmd.hasOption("v")) {
+            getHelp();
+            System.exit(0);
+        }
+
+        String port = (cmd.hasOption("p")) ? cmd.getOptionValue("p")
+                : config.getXBeePort();
+        String baud = (cmd.hasOption("b")) ? cmd.getOptionValue("b")
+                : config.getXBeeBaud().toString();
+        String rootTopic = (cmd.hasOption("t")) ? cmd.getOptionValue("t")
+                : config.getRootTopic();
+        String broker = (cmd.hasOption("u")) ? cmd.getOptionValue("u")
+                : config.getBroker();
+
+        XBeeDevice xbee = new XBeeDevice(port, Integer.parseInt(baud)); 
+        xbee.open();
+        MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString()); 
+        final Xbmq xbmq = new Xbmq(xbee, mqtt, rootTopic);   
+        xbmq.connectMqtt();
 
         /**
          * Setup listeners for unsolicited packets from the XBee network.
-         */
-        XBeeDevice xbee = xbmq.getXBee();
-        xbee.addDataListener(new XbmqDataReceiveListener());
-        xbee.addIOSampleListener(new XbmqSampleReceiveListener());
+         */        
+        xbee.addDataListener(new XbmqDataReceiveListener(xbmq));
+        xbee.addIOSampleListener(new XbmqSampleReceiveListener(xbmq));
 
         /**
          * Subscribe to topics.
-         */
+         */        
+        XbmqTopic t = xbmq.getTopics();
         String[] topics = {
-            new MqttDataMessage().getSubscriptionTopic(),
-            new MqttAtMessage().getSubscriptionTopic(),
-            new MqttDiscoveryMessage().getSubscriptionTopic(),
-            new MqttIOMessage().getSubscriptionTopic()
+            t.subAt(),
+            t.subData(),
+            t.subDiscovery(),
+            t.subIOUpdate(null)
         };
         int[] qos = {0, 0, 0, 0};
-
-        MqttAsyncClient mqtt = xbmq.getMqttClient();
-        mqtt.setCallback(new XbmqMqttCallback());
-        mqtt.subscribe(topics, qos);
         
+        mqtt.setCallback(new XbmqMqttCallback(xbmq));
+        mqtt.subscribe(topics, qos);
+
         /**
          * Add shutdown hooks to stop logger on Ctrl-C.
          */
@@ -94,7 +93,7 @@ public class Main {
             @Override
             public void run() {
                 try {
-                    Xbmq.getInstance().disconnect();
+                    xbmq.disconnect();
                 } catch (MqttException ex) {
                     Logger.getLogger(this.getClass()).log(Level.ERROR, null, ex);
                 }

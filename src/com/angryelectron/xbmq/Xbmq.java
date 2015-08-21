@@ -5,156 +5,109 @@
 
 package com.angryelectron.xbmq;
 
+import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.digi.xbee.api.XBeeDevice;
-import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.models.XBee64BitAddress;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttTopic;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Global access to XBee device and MQTT broker.  Singleton.
+ * Access to XBee device and MQTT broker.
  */
 public class Xbmq {
     
-    private XBeeDevice xbee;
-    private MqttAsyncClient mqtt;
-    private String rootTopic;
-    private String gatewayId;
+    private final XBeeDevice xbee;
+    private final MqttAsyncClient mqtt;
+    private String rootTopic = "";  
+    private final XbmqTopic topics;
     
-    private Xbmq(){}         
-
-    private static class SingletonHelper{
-        private static final Xbmq INSTANCE = new Xbmq();
-    }
-
-    /**
-     * Get single instance of this class.
-     * @return Global Xbmq object.
-     */
-    public static Xbmq getInstance(){
-        return SingletonHelper.INSTANCE;
-    }
-            
-    /**
-     * Connect to devices and brokers.
-     * @param baud XBee serial baud rate (eg. 9600)
-     * @param port XBee serial port name (eg. /dev/ttyUSB0)
-     * @param broker MQTT broker (eg. tcp://broker.name:1883)
-     * @param rootTopic Root MQTT topic
-     * @throws XBeeException if connection to XBee fails
-     * @throws MqttException if connection to MQTT broker fails
-     */
-    public void connect(int baud, String port, String broker, String rootTopic) throws XBeeException, MqttException {   
-                
+    public Xbmq(XBeeDevice xbee, MqttAsyncClient mqtt, String rootTopic) {
+        if ((mqtt == null) || (xbee == null)) {
+            throw new IllegalArgumentException("XBee and/or Mqtt cannot be null.");
+        }
+        if (!xbee.isOpen()) {
+            throw new IllegalArgumentException("XBee is not open.");
+        }
+        if ((mqtt.getClientId() == null) || (mqtt.getClientId().isEmpty())) {
+            throw new IllegalArgumentException("Mqtt requires clientID.");
+        }
+        this.xbee = xbee;        
+        this.mqtt = mqtt;
         this.rootTopic = rootTopic;
+        this.topics = new XbmqTopic(rootTopic, mqtt.getClientId());
+    }
+                    
+    public XbmqTopic getTopics() {
+        return topics;
+    }
+    
+    /**
+     * Connect to devices and brokers.               
+     * @throws MqttException if connection to MQTT broker fails
+     */   
+    public void connectMqtt() throws MqttException {
+        if (mqtt.isConnected()) {
+            throw new MqttException(MqttException.REASON_CODE_CLIENT_CONNECTED);
+        }
         
-        /**
-         * Open XBee first so we can pass the 64-bit address as the client ID
-         * to MQTT.  
-         */
-        xbee = new XBeeDevice(port, baud);        
-        xbee.open();    
-        String gateway = getGatewayId();
-        
-        /**
-         * Setup last will and testament.
-         */
-        StringBuilder topicBuilder = new StringBuilder(rootTopic);
-        topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        topicBuilder.append(gateway);
-        topicBuilder.append(MqttTopic.TOPIC_LEVEL_SEPARATOR);
-        topicBuilder.append("online");
-        String lwtTopic = topicBuilder.toString();
-
-        /**
-         * Connect.
-         */
         MqttConnectOptions options = new MqttConnectOptions();
-        options.setWill(lwtTopic, "0".getBytes(), 0, true);         
-        options.setCleanSession(true);        
-        mqtt = new MqttAsyncClient(broker, getGatewayId()); 
-        mqtt.connect(options).waitForCompletion();
+        options.setWill(topics.pubOnline(), "0".getBytes(), 0, true);         
+        options.setCleanSession(true);                
+        mqtt.connect(options).waitForCompletion();        
         
         /**
          * Set online status.
-         */
-        mqtt.publish(lwtTopic, "1".getBytes(), 0, true);
+         */        
+        this.publishMqtt(topics.pubOnline(), new MqttMessage("1".getBytes()));
     }
-    
-    /**
-     * Connect to devices and brokers.  Reads settings from xmbq.properties
-     * or uses default values if not found.  Defaults are:  port=/dev/ttyUSB0, 
-     * baud=9600, rootTopic="", broker=tcp://test.mosquitto.org:1883.
-     * @throws XBeeException if connection to XBee fails
-     * @throws MqttException if connection to MQTT broker fails
-     */
-    public void connect() throws XBeeException, MqttException {
-        XbmqConfig config = new XbmqConfig();
-        connect(config.getXBeeBaud(), config.getXBeePort(), config.getBroker(), config.getRootTopic());
+                        
+    public XBee64BitAddress getGatewayAddress() {        
+        return new XBee64BitAddress(mqtt.getClientId());        
     }
-    
-    /**
-     * Get the ID of this Gateway.  The ID is actually the 64-bit address of the
-     * local XBee attached to the gateway, and is the second-level topic for all
-     * requests and responses to/from this gateway.
-     * @return The 64-bit address of the XBee radio attached to the gateway, or 
-     * FFFFFFFFFFFFFFFF if the address is unknown.
-     * 
-     */
-    public String getGatewayId() {
-        if (xbee == null) {
-            return XBee64BitAddress.UNKNOWN_ADDRESS.toString();
-        }
-        if ((gatewayId == null) || gatewayId.isEmpty()) {
-            gatewayId = xbee.get64BitAddress().toString();
-        }
-        return gatewayId;
-    }
-    
-    /**
-     * Access the XBeeDevice attached to the gateway.
-     * @return XBeeDevice or null if not connected.
-     * @see #connect() 
-     * @see #connect(int, java.lang.String, java.lang.String, java.lang.String) 
-     */
+        
     public XBeeDevice getXBee() {        
         return xbee;
     }
     
-    /**
-     * Access the MQTT client attached to the gateway.
-     * @return MqttAsyncClient or null if not connected.
-     * @see #connect() 
-     * @see #connect(int, java.lang.String, java.lang.String, java.lang.String) 
-     */
-    public MqttAsyncClient getMqttClient() {              
+    public MqttAsyncClient getMqtt() {              
         return mqtt;
     }
-    
-    /**
-     * Get the MQTT top-level topic. 
-     * @return Root topic, or an empty string if not set.
-     */
-    String getRootTopic() {
-        if (rootTopic == null) {
-            return "";
-        } else {
-            return rootTopic;
-        }
-    }
-    
+            
     /**
      * Close XBee device and MQTT client.  Blocks until MQTT connection is
      * closed to ensure last will and testament is published.
      * @throws MqttException 
      */
+    
     public void disconnect() throws MqttException {
         xbee.close();
         mqtt.disconnect().waitForCompletion();        
     }
-    
+                        
+    public void publishMqtt(String topic, MqttMessage message) throws MqttException {                
+        mqtt.publish(topic, message, null, new IMqttActionListener(){
+            
+            @Override
+            public void onSuccess(IMqttToken imt) {
+                //throw new UnsupportedOperationException("Not supported yet.");
+            }
 
+            @Override
+            public void onFailure(IMqttToken imt, Throwable thrwbl) {
+                Logger.getLogger(this.getClass()).log(Level.ERROR, thrwbl);
+            }
+        
+        });
+    }
+    
+    public XbmqSampleReceiveListener sampleListenerFactory() {
+        return new XbmqSampleReceiveListener(this);
+    }
+                
 }

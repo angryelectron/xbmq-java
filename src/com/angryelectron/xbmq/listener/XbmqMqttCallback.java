@@ -1,16 +1,18 @@
 /**
- * Xbmq - XBee / MQTT Gateway
- * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
+ * Xbmq - XBee / MQTT Gateway Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
-
 package com.angryelectron.xbmq.listener;
 
-import com.angryelectron.xmbq.message.XBeeAtMessage;
-import com.angryelectron.xmbq.message.XBeeDiscoveryMessage;
-import com.angryelectron.xmbq.message.XBeeDataMessage;
-import com.angryelectron.xmbq.message.XBeeISMessage;
-import com.angryelectron.xmbq.message.XBeeMessage;
+import com.angryelectron.xbmq.Xbmq;
+import com.angryelectron.xbmq.XbmqTopic;
+import com.angryelectron.xbmq.message.XBeeAtMessage;
+import com.angryelectron.xbmq.message.XBeeDiscoveryMessage;
+import com.angryelectron.xbmq.message.XBeeDataMessage;
+import com.angryelectron.xbmq.message.XBeeISMessage;
+import com.angryelectron.xbmq.message.XBeeMessage;
+import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
+import com.digi.xbee.api.models.XBee64BitAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.apache.log4j.Level;
@@ -21,24 +23,27 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Listen and process messages from subscribed MQTT topics. 
+ * Listen and process messages from subscribed MQTT topics.
  */
 public class XbmqMqttCallback implements MqttCallback {
 
-    /**
-     * A list of every XBeeMessage implementation than can be
-     * received at the gateway via MQTT subscription.
-     */
-    private final ArrayList<XBeeMessage> messageTypes = new ArrayList<>(
-            Arrays.asList(
-                    new XBeeAtMessage(),
-                    new XBeeDataMessage(),
-                    new XBeeDiscoveryMessage(),
-                    new XBeeISMessage()            
-            ));
+    final private Xbmq xbmq;
+    private final ArrayList<XBeeMessage> messageTypes;
+
+    public XbmqMqttCallback(Xbmq xbmq) {
+        this.xbmq = xbmq;
+        this.messageTypes = new ArrayList<>(
+                Arrays.asList(
+                        new XBeeAtMessage(xbmq),
+                        new XBeeDataMessage(xbmq),
+                        new XBeeDiscoveryMessage(xbmq),
+                        new XBeeISMessage(xbmq)
+                ));
+    }
 
     /**
      * Called when the connection to the MQTT broker is lost.
+     *
      * @param thrwbl ?
      */
     @Override
@@ -57,20 +62,36 @@ public class XbmqMqttCallback implements MqttCallback {
      * @throws Exception if things go very wrong.
      */
     @Override
-    public void messageArrived(String topic, MqttMessage mm) throws Exception {        
+    public void messageArrived(String topic, MqttMessage mm) throws Exception {
+        RemoteXBeeDevice device;
+        
+        /**
+         * Get device address.  If the request is for the gateway, pass 
+         * null as the address.
+         */
         try {
+            XBee64BitAddress address = new XBee64BitAddress(XbmqTopic.parseAddress(topic));
+            device = new RemoteXBeeDevice(xbmq.getXBee(), address);
+        } catch (IllegalArgumentException ex) {
+            device = null;
+        }
+        
+        try {            
             for (XBeeMessage m : messageTypes) {
                 if (m.subscribesTo(topic)) {
-                    m.send(topic, mm);
+                    m.transmit(device, mm);
+                    m.publish();
                 }
             }
-        } catch (XBeeException | MqttException ex) {
+        } catch (Exception ex) {
+            //TODO: need to report errors to MQTT client
             Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
         }
     }
 
     /**
      * Called when an MQTT message has completed delivery.
+     *
      * @param imdt Token.
      */
     @Override
