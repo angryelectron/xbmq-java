@@ -8,75 +8,174 @@ import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
 import com.angryelectron.xbmq.XbmqUtils;
 import com.digi.xbee.api.RemoteXBeeDevice;
-import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.models.XBee64BitAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Relay AT messages send via MQTT to an XBee network.
+ * Relay AT messages transmit via MQTT to an XBee network.
  */
 public class XBeeAtMessage implements XBeeMessage {
-    
+
     private final Xbmq xbmq;
-       
+    private String parameter;
+    private String response;
+    private XBee64BitAddress device;
+
     public XBeeAtMessage(Xbmq xbmq) {
         this.xbmq = xbmq;
     }
-    
-    private final Set<String> unsupportedCommands = new HashSet<>(Arrays.asList(
-            "ND", //node discovery - handled by other mechanisms
-            "CB", //commission button - CB[N]
-            "AT", //not supported by the XBee API
-            "AP", //won't work if API mode is disabled            
-            "IS" //use XBeeISMmessage() instead
+
+    /**
+     * All valid AT commands, according to
+     * <a href="http://examples.digi.com/wp-content/uploads/2012/07/XBee_ZB_ZigBee_AT_Commands.pdf"
+     * >XBee Command Reference Tables</a>
+     */
+    final Set<String> atCommands = new HashSet<>(Arrays.asList(
+            "DH",
+            "DL",
+            "MY",
+            "MP",
+            "NC",
+            "SH",
+            "SL",
+            "SE",
+            "DE",
+            "CI",
+            "NP",
+            "DD",
+            "CH",
+            "ID",
+            "OP",
+            "NH",
+            "BH",
+            "OI",
+            "NT",
+            "NO",
+            "SC",
+            "SD",
+            "ZS",
+            "NJ",
+            "JV",
+            "NW",
+            "JN",
+            "AR",
+            "EE",
+            "EO",
+            "NK",
+            "KY",
+            "PL",
+            "PM",
+            "DB",
+            "PP",
+            "AO",
+            "BD",
+            "NB",
+            "SB",
+            "RO",
+            "D8",
+            "D7",
+            "D6",
+            "D5",
+            "D4",
+            "D3",
+            "D2",
+            "D1",
+            "D0",
+            "IR",
+            "IC",
+            "P0",
+            "P1",
+            "P2",
+            "P3",
+            "LT",
+            "PR",
+            "RP",
+            "%V",
+            "V+",
+            "TP",
+            "VR",
+            "HV",
+            "AI",
+            "CT",
+            "GT",
+            "CC",
+            "SM",
+            "SN",
+            "SP",
+            "ST",
+            "SO",
+            "WH",            
+            "PO",
+            "AT",
+            "NR",
+            "DN",
+            "AP",
+            "NI"
     ));
-    private final Set<String> executionCommands = new HashSet<>(Arrays.asList(
+
+    /**
+     * Valid AT commands that don't take parameters and don't return a response.
+     */
+    final Set<String> executionCommands = new HashSet<>(Arrays.asList(
             "AC", //apply changes
             "WR", //write
             "RE", //restore defaults
             "FR", //software reset            
             "SI", //sleep immediately            
             "1S", //force sensors sample
-            "CN" //exit command mode            
+            "CN", //exit command mode            
+            "CB1", //one commission button press
+            "CB2", //two button press
+            "CB3", //etc.
+            "CB4" //add more as required                       
+    ));
+    
+    /**
+     * Valid commands that are handled by other topics.
+     */
+    final Set<String> reservedCommands = new HashSet<>(Arrays.asList(
+            "ND",
+            "IS"
     ));
 
+    private final Pattern pattern = Pattern.compile("([a-zA-Z1%][a-zA-Z0-9\\+][0-9]?)(=(.+))?");
+    
     /**
      * Send AT command to XBee. Use to get or set AT parameters.
      *
-     * @param topic MQTT topic of the AT request
+     * @param rxb
      * @param message Valid XBee AT command. Eg. "D0" to get or "D0=4" to set.
      * The following AT commands are not supported: CB, AT, AP. The following AT
      * commands are accessed using other topics: ND, IS. Note: Not all AT
      * commands have been throughly tested.
-     * @throws Exception if message cannot be sent to XBee or response cannot be
-     * published to MQTT.
+     * @throws com.digi.xbee.api.exceptions.XBeeException
      * @see XBeeDiscoveryMessage
      * @see XBeeISMessage
      */
     @Override
-    public void send(String topic, MqttMessage message) throws Exception {
-        XBeeDevice xbee = xbmq.getXBee();        
-        XBee64BitAddress address = new XBee64BitAddress(XbmqTopic.parseAddress(topic));
-        RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
-        String msg = new String(message.getPayload(), StandardCharsets.UTF_8);
-        if (msg.isEmpty()) {
-            throw new XBeeException("Message cannot be empty - ignoring.");
+    public void transmit(RemoteXBeeDevice rxb, MqttMessage message) throws XBeeException {
+        String cmd = new String(message.getPayload(), StandardCharsets.UTF_8);
+        Matcher matcher = pattern.matcher(cmd);
+        if (!matcher.find()) {
+            throw new XBeeException("Invalid AT command.");
         }
-        String[] param = msg.split("=");
-        if (unsupportedCommands.contains(param[0])) {
-            Logger.getLogger(this.getClass()).log(Level.WARN, "Unsupported command: " + msg);
-        } else if (msg.contains("=")) {
-            setParameter(rxd, param[0], param[1]);
+        device = rxb.get64BitAddress();
+        parameter = matcher.group(1).toUpperCase();
+        
+        if (reservedCommands.contains(parameter)) {
+            throw new XBeeException(parameter + "is accessed with another topic.");
+        } else if (matcher.group(3) == null) {
+            getParameter(rxb, parameter);
         } else {
-            getParameter(rxd, param[0]);
+            setParameter(rxb, parameter, matcher.group(3));
         }
     }
 
@@ -87,7 +186,7 @@ public class XBeeAtMessage implements XBeeMessage {
      * @return true if topic can be handled.
      */
     @Override
-    public boolean subscribesTo(String topic) {        
+    public boolean subscribesTo(String topic) {
         return topic.contains(XbmqTopic.ATSUBTOPIC);
     }
 
@@ -100,11 +199,18 @@ public class XBeeAtMessage implements XBeeMessage {
      * @throws XBeeException if the AT parameter cannot be set.
      */
     private void setParameter(RemoteXBeeDevice rxd, String parameter, String value) throws XBeeException {
-        if (parameter.toUpperCase().equals("NI")) {
-            rxd.setNodeID(value);
+        if (atCommands.contains(parameter)) {            
+            if (parameter.equals("NI")) {
+                rxd.setNodeID(value);
+            } else {
+                rxd.setParameter(parameter, value.getBytes());        
+            }
+        } else if (executionCommands.contains(parameter)) {
+            throw new XBeeException(parameter + " cannot be set.");
         } else {
-            rxd.setParameter(parameter, value.getBytes());
+            throw new XBeeException("Invalid AT command.");
         }
+
     }
 
     /**
@@ -113,20 +219,35 @@ public class XBeeAtMessage implements XBeeMessage {
      * @param rxd RemoteXBeeDevice
      * @param parameter AT parameter
      * @throws XBeeException If the parameter cannot be fetched from the XBee.
-     * @throws MqttException If the result cannot be published to the broker.
      */
-    private void getParameter(RemoteXBeeDevice rxd, String parameter) throws XBeeException, MqttException {
-        if (executionCommands.contains(parameter)) {
-            rxd.executeParameter(parameter);
-        } else if (parameter.toUpperCase().equals("NI")) {
-            rxd.readDeviceInfo();
-            MqttAtMessage msg = new MqttAtMessage(xbmq);
-            msg.send(rxd.get64BitAddress(),
-                    parameter, rxd.getNodeID());
+    private String getParameter(RemoteXBeeDevice rxd, String parameter) throws XBeeException {
+        if (atCommands.contains(parameter)) {
+            if (parameter.equals("NI")) {
+                rxd.readDeviceInfo();
+                return rxd.getNodeID();
+            } else {
+                return XbmqUtils.bytesToString(rxd.getParameter(parameter));
+            }
+        }else if (executionCommands.contains(parameter)) {
+            switch (parameter) {
+                case "ND":
+                    throw new XBeeException("ND must use 'discoveryRequest' topic.");
+                case "IS":
+                    throw new XBeeException("IS must use 'ioUpdate' topic.");
+                default:
+                    rxd.executeParameter(parameter);
+                    return null;
+            }
         } else {
-            String result = XbmqUtils.bytesToString(rxd.getParameter(parameter));
+            throw new XBeeException("Invalid AT command.");
+        }
+    }
+
+    @Override
+    public void publish() throws MqttException {
+        if ((response != null) && (!response.isEmpty())) {
             MqttAtMessage msg = new MqttAtMessage(xbmq);
-            msg.send(rxd.get64BitAddress(), parameter, result);
+            msg.send(device, parameter, response);
         }
     }
 

@@ -6,11 +6,9 @@ package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
-import com.angryelectron.xbmq.XbmqUtils;
 import com.digi.xbee.api.RemoteXBeeDevice;
-import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
-import com.digi.xbee.api.models.XBee64BitAddress;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
@@ -37,15 +35,19 @@ public class XBeeDataMessage implements XBeeMessage {
 
     /**
      * Send a data packet to an XBee device.
-     * @param topic topic
+     * @param rxd
      * @param message message 
      * @throws XBeeException if the data cannot be sent.
      */
     @Override
-    public void send(String topic, MqttMessage message) throws XBeeException {
-        XBeeDevice xbee = xbmq.getXBee();
-        XBee64BitAddress address = new XBee64BitAddress(XbmqTopic.parseAddress(topic));
-        RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
-        xbee.sendData(rxd, message.getPayload());
+    public void transmit(RemoteXBeeDevice rxd, MqttMessage message) throws XBeeException {        
+        xbmq.getXBee().sendData(rxd, message.getPayload());
+    }
+
+    @Override
+    public void publish() throws MqttException {
+        /**
+         * Any response will be published by XbmqDataReceiveListener.
+         */
     }
 }

@@ -6,12 +6,15 @@
 package com.angryelectron.xbmq.listener;
 
 import com.angryelectron.xbmq.Xbmq;
+import com.angryelectron.xbmq.XbmqTopic;
 import com.angryelectron.xmbq.message.XBeeAtMessage;
 import com.angryelectron.xmbq.message.XBeeDiscoveryMessage;
 import com.angryelectron.xmbq.message.XBeeDataMessage;
 import com.angryelectron.xmbq.message.XBeeISMessage;
 import com.angryelectron.xmbq.message.XBeeMessage;
+import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
+import com.digi.xbee.api.models.XBee64BitAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.apache.log4j.Level;
@@ -61,10 +64,13 @@ public class XbmqMqttCallback implements MqttCallback {
      */
     @Override
     public void messageArrived(String topic, MqttMessage mm) throws Exception {        
-        try {
+        XBee64BitAddress address = new XBee64BitAddress(XbmqTopic.parseAddress(topic));
+        RemoteXBeeDevice device = new RemoteXBeeDevice(xbmq.getXBee(), address);
+        try {            
             for (XBeeMessage m : messageTypes) {
                 if (m.subscribesTo(topic)) {
-                    m.send(topic, mm);
+                    m.transmit(device, mm);
+                    m.publish();
                 }
             }
         } catch (XBeeException | MqttException ex) {

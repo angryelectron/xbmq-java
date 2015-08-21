@@ -6,12 +6,11 @@ package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
-import com.angryelectron.xbmq.XbmqUtils;
 import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.digi.xbee.api.RemoteXBeeDevice;
-import com.digi.xbee.api.XBeeDevice;
+import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.io.IOSample;
-import com.digi.xbee.api.models.XBee64BitAddress;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
@@ -28,22 +27,19 @@ public class XBeeISMessage implements XBeeMessage {
     /**
      * Request an IOSample from an XBee Device.  Results are published
      * to the 'io' topic.
-     * @param topic topic
+     * @param rxb
      * @param mm ignored.  Can be blank/empty.
-     * @throws Exception if sample cannot be obtained or published.
+     * @throws com.digi.xbee.api.exceptions.XBeeException
      */
     @Override
-    public void send(String topic, MqttMessage mm) throws Exception {
-        XBeeDevice xbee = xbmq.getXBee();
-        XBee64BitAddress address = new XBee64BitAddress(XbmqTopic.parseAddress(topic));
-        RemoteXBeeDevice rxd = new RemoteXBeeDevice(xbee, address);
-        IOSample sample = rxd.readIOSample();
+    public void transmit(RemoteXBeeDevice rxb, MqttMessage mm) throws XBeeException {        
+        IOSample sample = rxb.readIOSample();
         
         /**
          * Use the unsolicited IO listener to process the result.        
          */
         XbmqSampleReceiveListener listener = new XbmqSampleReceiveListener(xbmq);
-        listener.ioSampleReceived(rxd, sample);
+        listener.ioSampleReceived(rxb, sample);
     }        
 
     /**
@@ -55,5 +51,10 @@ public class XBeeISMessage implements XBeeMessage {
     public boolean subscribesTo(String topic) {
         return topic.contains(XbmqTopic.IOSUBTOPIC);
     }    
+
+    @Override
+    public void publish() throws MqttException {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
         
 }
