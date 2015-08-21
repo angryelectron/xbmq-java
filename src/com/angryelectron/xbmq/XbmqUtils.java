@@ -5,10 +5,6 @@
  */
 package com.angryelectron.xbmq;
 
-import com.digi.xbee.api.models.XBee64BitAddress;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  *
  * @author abythell
