@@ -3,7 +3,7 @@
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.digi.xbee.api.models.XBee64BitAddress;

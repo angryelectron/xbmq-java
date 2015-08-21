@@ -3,13 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
+import com.angryelectron.xbmq.message.MqttDiscoveryMessage;
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.models.XBee64BitAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
@@ -24,13 +27,13 @@ import static org.mockito.Mockito.when;
  *
  * @author abythell
  */
-public class MqttDataMessageTest {
+public class MqttDiscoveryMessageTest {
 
     private Xbmq xbmq;
     private final XbmqTopic topics = new XbmqTopic("rootTopic", "ABCDABCDABCDABCD");
     private final XBee64BitAddress device = new XBee64BitAddress("1234567812345678");
 
-    public MqttDataMessageTest() {
+    public MqttDiscoveryMessageTest() {
     }
 
     @Before
@@ -43,16 +46,30 @@ public class MqttDataMessageTest {
     public void testSend() throws Exception {        
         RemoteXBeeDevice rxb = mock(RemoteXBeeDevice.class);
         when(rxb.get64BitAddress()).thenReturn(device);        
-        com.digi.xbee.api.models.XBeeMessage xbm = new com.digi.xbee.api.models.XBeeMessage(rxb, "test".getBytes());        
+                
+        List<RemoteXBeeDevice> devices = new ArrayList<>();
+        devices.add(rxb);
+        devices.add(rxb);
+        devices.add(rxb);
         
-        MqttDataMessage message = new MqttDataMessage(xbmq);
-        message.send(xbm);
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"devices\": [");
+        builder.append("\"1234567812345678\",");
+        builder.append("\"1234567812345678\",");
+        builder.append("\"1234567812345678\"]");
+        builder.append("}");
+        String expectedMessage = builder.toString();
+        
+        MqttDiscoveryMessage message = new MqttDiscoveryMessage(xbmq);
+        message.send(devices, MqttDiscoveryMessage.Format.JSON);
 
         ArgumentCaptor<MqttMessage> argument = ArgumentCaptor.forClass(MqttMessage.class);
         verify(xbmq).publishMqtt(
-                eq(topics.pubData(device.toString())),
+                eq(topics.pubDiscovery()),
                 argument.capture());
-        assertTrue("invalid message payload", Arrays.equals("test".getBytes(), argument.getValue().getPayload()));
+        assertTrue("invalid message payload", Arrays.equals(
+                expectedMessage.getBytes(), 
+                argument.getValue().getPayload()));
     }
 
 }

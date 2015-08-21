@@ -2,7 +2,7 @@
  * XbmqProvider - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
@@ -41,7 +41,9 @@ public class XBeeDataMessage implements XBeeMessage {
      */
     @Override
     public void transmit(RemoteXBeeDevice rxd, MqttMessage message) throws XBeeException {        
-        xbmq.getXBee().sendData(rxd, message.getPayload());
+        if (message.getPayload().length > 0) {
+            xbmq.getXBee().sendData(rxd, message.getPayload());
+        }
     }
 
     @Override

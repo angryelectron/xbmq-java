@@ -5,6 +5,7 @@
 
 package com.angryelectron.xbmq;
 
+import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.models.XBee64BitAddress;
 import org.apache.log4j.Level;
@@ -103,6 +104,10 @@ public class Xbmq {
             }
         
         });
+    }
+    
+    public XbmqSampleReceiveListener sampleListenerFactory() {
+        return new XbmqSampleReceiveListener(this);
     }
                 
 }

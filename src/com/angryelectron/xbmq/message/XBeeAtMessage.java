@@ -2,7 +2,7 @@
  * XbmqDefaultProvider - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
@@ -171,9 +171,9 @@ public class XBeeAtMessage implements XBeeMessage {
         parameter = matcher.group(1).toUpperCase();
         
         if (reservedCommands.contains(parameter)) {
-            throw new XBeeException(parameter + "is accessed with another topic.");
+            throw new XBeeException(parameter + " is accessed with another topic.");
         } else if (matcher.group(3) == null) {
-            getParameter(rxb, parameter);
+            response = getParameter(rxb, parameter);
         } else {
             setParameter(rxb, parameter, matcher.group(3));
         }

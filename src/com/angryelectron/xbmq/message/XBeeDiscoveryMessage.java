@@ -2,12 +2,12 @@
  * XbmqProvider - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
 import com.angryelectron.xbmq.listener.XbmqDiscoveryListener;
-import com.angryelectron.xmbq.message.MqttDiscoveryMessage.Format;
+import com.angryelectron.xbmq.message.MqttDiscoveryMessage.Format;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.XBeeNetwork;

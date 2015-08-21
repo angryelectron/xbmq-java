@@ -6,7 +6,7 @@
 package com.angryelectron.xbmq.listener;
 
 import com.angryelectron.xbmq.Xbmq;
-import com.angryelectron.xmbq.message.MqttIOMessage;
+import com.angryelectron.xbmq.message.MqttIOMessage;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.io.IOLine;
 import com.digi.xbee.api.io.IOSample;

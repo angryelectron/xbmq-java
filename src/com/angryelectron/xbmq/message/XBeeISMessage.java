@@ -2,7 +2,7 @@
  * XbmqProvider - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
@@ -19,6 +19,8 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 public class XBeeISMessage implements XBeeMessage {
         
     private final Xbmq xbmq;
+    private IOSample sample;
+    private RemoteXBeeDevice rxb;
     
     public XBeeISMessage(Xbmq xbmq) {
         this.xbmq = xbmq;
@@ -33,13 +35,8 @@ public class XBeeISMessage implements XBeeMessage {
      */
     @Override
     public void transmit(RemoteXBeeDevice rxb, MqttMessage mm) throws XBeeException {        
-        IOSample sample = rxb.readIOSample();
-        
-        /**
-         * Use the unsolicited IO listener to process the result.        
-         */
-        XbmqSampleReceiveListener listener = new XbmqSampleReceiveListener(xbmq);
-        listener.ioSampleReceived(rxb, sample);
+        this.rxb = rxb;
+        this.sample = rxb.readIOSample();                
     }        
 
     /**
@@ -54,7 +51,11 @@ public class XBeeISMessage implements XBeeMessage {
 
     @Override
     public void publish() throws MqttException {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        /**
+         * Use the unsolicited IO listener to process the result.        
+         */
+        XbmqSampleReceiveListener listener = xbmq.sampleListenerFactory();
+        listener.ioSampleReceived(rxb, sample);
     }
         
 }

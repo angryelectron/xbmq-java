@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
+import com.angryelectron.xbmq.message.MqttIOMessage;
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
 import com.digi.xbee.api.RemoteXBeeDevice;

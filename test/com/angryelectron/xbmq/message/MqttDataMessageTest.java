@@ -3,10 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
+import com.angryelectron.xbmq.message.MqttDataMessage;
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
+import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.models.XBee64BitAddress;
 import java.util.Arrays;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -23,13 +25,13 @@ import static org.mockito.Mockito.when;
  *
  * @author abythell
  */
-public class MqttAtMessageTest {
+public class MqttDataMessageTest {
 
     private Xbmq xbmq;
     private final XbmqTopic topics = new XbmqTopic("rootTopic", "ABCDABCDABCDABCD");
     private final XBee64BitAddress device = new XBee64BitAddress("1234567812345678");
 
-    public MqttAtMessageTest() {
+    public MqttDataMessageTest() {
     }
 
     @Before
@@ -39,16 +41,19 @@ public class MqttAtMessageTest {
     }
 
     @Test
-    public void testSend() throws Exception {
+    public void testSend() throws Exception {        
+        RemoteXBeeDevice rxb = mock(RemoteXBeeDevice.class);
+        when(rxb.get64BitAddress()).thenReturn(device);        
+        com.digi.xbee.api.models.XBeeMessage xbm = new com.digi.xbee.api.models.XBeeMessage(rxb, "test".getBytes());        
         
-        MqttAtMessage message = new MqttAtMessage(xbmq);
-        message.send(device, "D0", "4");
+        MqttDataMessage message = new MqttDataMessage(xbmq);
+        message.send(xbm);
 
         ArgumentCaptor<MqttMessage> argument = ArgumentCaptor.forClass(MqttMessage.class);
         verify(xbmq).publishMqtt(
-                eq(topics.pubAt(device.toString())),
+                eq(topics.pubData(device.toString())),
                 argument.capture());
-        assertTrue("invalid message payload", Arrays.equals("D0=4".getBytes(), argument.getValue().getPayload()));
+        assertTrue("invalid message payload", Arrays.equals("test".getBytes(), argument.getValue().getPayload()));
     }
 
 }

@@ -6,8 +6,8 @@
 package com.angryelectron.xbmq.listener;
 
 import com.angryelectron.xbmq.Xbmq;
-import com.angryelectron.xmbq.message.MqttDiscoveryMessage;
-import com.angryelectron.xmbq.message.MqttDiscoveryMessage.Format;
+import com.angryelectron.xbmq.message.MqttDiscoveryMessage;
+import com.angryelectron.xbmq.message.MqttDiscoveryMessage.Format;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.listeners.IDiscoveryListener;
 import java.util.ArrayList;

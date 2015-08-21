@@ -6,7 +6,7 @@
 package com.angryelectron.xbmq.listener;
 
 import com.angryelectron.xbmq.Xbmq;
-import com.angryelectron.xmbq.message.MqttDataMessage;
+import com.angryelectron.xbmq.message.MqttDataMessage;
 import com.digi.xbee.api.listeners.IDataReceiveListener;
 import com.digi.xbee.api.models.XBeeMessage;
 import org.apache.log4j.Level;

@@ -3,13 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.angryelectron.xmbq.message;
+package com.angryelectron.xbmq.message;
 
+import com.angryelectron.xbmq.message.XBeeAtMessage;
 import com.angryelectron.xbmq.Xbmq;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Matchers.anyString;
@@ -133,6 +136,12 @@ public class XBeeAtMessageTest {
     @Test
     public void testPublishNullResultNoException() throws MqttException {    
         message.publish();        
+    }
+    
+    @Test
+    public void testSubscribesTo() {
+        assertTrue(message.subscribesTo("root/ABCDABCDABCDABCD/1234567812345678/atIn"));
+        assertFalse(message.subscribesTo("root/ABCDABCDABCDABCD/1234567812345678/badTopic"));
     }
 
     
