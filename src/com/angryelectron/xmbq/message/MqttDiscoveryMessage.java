@@ -7,11 +7,9 @@ package com.angryelectron.xmbq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.digi.xbee.api.RemoteXBeeDevice;
-import com.digi.xbee.api.models.XBee64BitAddress;
 import java.util.List;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  * Format and publish node-discovery results as an MQTT message. 
