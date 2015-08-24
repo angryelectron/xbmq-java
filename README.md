@@ -16,7 +16,7 @@ Get a list of all nodes on the network in a JSON-list by subscribing to
 'rootTopic/64bit-gateway-address/discoveryResponse', then sending "JSON" to
 'rootTopic/64bit-gateway-address/discoveryRequest'
 
-###Requirements
+### Requirements
 
 1. Java-enabled computer or embedded device with a serial port and networking to
 act as the gateway.
@@ -38,7 +38,7 @@ Installation
 4. Run xbmq.sh (Linux/Mac, may need to chmod +x first) or xbmq.bat (Windows).
 
 Some systems may require a separate install of the RXTX library.  On Debian-based
-systems, try 'apt-get librxtx-java'.
+systems, try `apt-get librxtx-java`.
 
 An initscript is also provided to allow Debian (and similar) distros to start
 xbmq automatically on boot. To use:
