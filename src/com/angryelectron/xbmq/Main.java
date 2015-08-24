@@ -9,6 +9,8 @@ import com.angryelectron.xbmq.listener.XbmqDataReceiveListener;
 import com.angryelectron.xbmq.listener.XbmqMqttCallback;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
+import java.io.File;
+import java.util.Properties;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -23,11 +25,11 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 /**
- * Main entry point for the application.  Parses command line and reads
- * properties file to determine XBee and MQTT settings.  Connects to XBee
- * device and MQTT broker.  Sets up listeners for XBee IOSamples and data
- * packages, as well as MQTT subscriptions.  Sets up a runtime hook to
- * shutdown when Ctrl-C is pressed.
+ * Main entry point for the application. Parses command line and reads
+ * properties file to determine XBee and MQTT settings. Connects to XBee device
+ * and MQTT broker. Sets up listeners for XBee IOSamples and data packages, as
+ * well as MQTT subscriptions. Sets up a runtime hook to shutdown when Ctrl-C is
+ * pressed.
  */
 public class Main {
 
@@ -64,21 +66,34 @@ public class Main {
         String broker = (cmd.hasOption("u")) ? cmd.getOptionValue("u")
                 : config.getBroker();
 
-        XBeeDevice xbee = new XBeeDevice(port, Integer.parseInt(baud)); 
+        /**
+         * Ensure RXTX knows about non-standard serial ports.
+         * For details see http://angryelectron.com/rxtx-on-raspbian/.
+         */
+        Properties properties = System.getProperties();
+        String currentPorts = properties.getProperty("gnu.io.rxtx.SerialPorts", port);
+        if (currentPorts.equals(port)) {
+            properties.setProperty("gnu.io.rxtx.SerialPorts", port);
+        } else {
+            properties.setProperty("gnu.io.rxtx.SerialPorts", currentPorts
+                    + File.pathSeparator + port);
+        }
+
+        XBeeDevice xbee = new XBeeDevice(port, Integer.parseInt(baud));
         xbee.open();
-        MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString()); 
-        final Xbmq xbmq = new Xbmq(xbee, mqtt, rootTopic);   
+        MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString());
+        final Xbmq xbmq = new Xbmq(xbee, mqtt, rootTopic);
         xbmq.connectMqtt();
 
         /**
          * Setup listeners for unsolicited packets from the XBee network.
-         */        
+         */
         xbee.addDataListener(new XbmqDataReceiveListener(xbmq));
         xbee.addIOSampleListener(new XbmqSampleReceiveListener(xbmq));
 
         /**
          * Subscribe to topics.
-         */        
+         */
         XbmqTopic t = xbmq.getTopics();
         String[] topics = {
             t.atRequest(),
@@ -87,7 +102,7 @@ public class Main {
             t.ioUpdateRequest(null)
         };
         int[] qos = {0, 0, 0, 0};
-        
+
         mqtt.setCallback(new XbmqMqttCallback(xbmq));
         mqtt.subscribe(topics, qos);
 
