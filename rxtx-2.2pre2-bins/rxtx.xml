@@ -1,0 +1,89 @@
+<!--
+rxtx.xml
+Copyright 2013 Andrew Bythell <abythell@ieee.org>
+
+Ant tasks for distributing Java applications with platform-specific RXTX 
+libraries as zip files.  To use:
+
+1. Get and unzip RXTX - http://rxtx.qbang.org/pub/rxtx/rxtx-2.2pre2-bins.zip
+2. Copy this file (rxtx.xml) into the RXTX directory.
+3. Include rxtx.xml in your build.xml.
+4. Use targets "dist-all", "dist-<platform>", or "dist-clean", where
+   <platform> = win32, win64, mac, i686, or x86_64.
+
+Example:  Add the following to the bottom of build.xml (before the final </project>
+tag) to build and clean all platforms automatically from the Netbeans IDE:
+
+        <include file="PATH-TO-RXTX-DIR/rxtx.xml">
+        <target name="dist" depends="jar, rxtx.dist-all" />
+        <target name="-post-clean" depends="rxtx.dist-clean" />
+
+This assumes the project output, containing the project jars, etc. are
+found in ${basedir}/dist and are created by the target "jar".  If the project
+jars are in another location, update the ${dist.dir} property below.
+
+Note that the Windows versions of JRE7 and JRE8 already contain RXTX, and that version will be
+used by default.  Only if the RXTX dll is not found will the local copy (the one installed here)
+be used.
+
+-->
+
+<project name="rxtx">
+    
+    <!-- 
+        If your project creates final output in a directory other than 
+        ${basedir}/dist, change the following line 
+    -->
+    <property name="dist.dir" value="${basedir}/dist" />
+    
+    
+    <dirname property="rxtx.dir" file="${ant.file.rxtx}" />        
+    <target name="zip" description="create zip from distribution dir and include>
+        platform-specific files" >
+        <zip destfile="${basedir}/${ant.project.name}-${platform}.zip">
+            <zipfileset dir="${dist.dir}" prefix="${ant.project.name}-${platform}" />
+            <zipfileset dir="${rxtx.dir}/${platform}" prefix="${ant.project.name}-${platform}" />
+        </zip>            
+    </target>
+    
+    <target name="dist-win32">
+        <antcall target="rxtx.zip">
+            <param name="platform" value="win32" />
+        </antcall>
+    </target>
+    
+    <target name="dist-win64">
+        <antcall target="rxtx.zip">
+            <param name="platform" value="win64" />
+        </antcall>
+    </target>
+    
+    <target name="dist-i686">
+        <antcall target="rxtx.zip">
+            <param name="platform" value="i686-pc-linux-gnu" />
+        </antcall>
+    </target>
+    
+    <target name="dist-x86_64">
+        <antcall target="rxtx.zip">
+            <param name="platform" value="x86_64-unknown-linux-gnu" />
+        </antcall>
+    </target>
+    
+    <target name="dist-mac">
+        <antcall target="rxtx.zip">
+            <param name="platform" value="mac-10.5" />
+        </antcall>
+    </target>
+            
+    <target name="dist-all" depends="dist-win32, dist-win64, dist-mac, dist-i686, 
+        dist-x86_64">        
+    </target>     
+    
+    <target name="dist-clean">
+        <delete>
+            <fileset dir="${basedir}" includes="${ant.project.name}*.zip" />
+        </delete>
+    </target>      
+
+</project>

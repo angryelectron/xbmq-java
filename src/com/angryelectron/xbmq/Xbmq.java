@@ -15,9 +15,9 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Manage XBee and MQTT connections, topics, and listeners. A single instance
- * of this class is used to create XBee and MQTT messages and allow them to 
- * access the same XBee and Mqtt objects throughout the application.
+ * Manage XBee and MQTT connections, topics, and listeners. A single instance of
+ * this class is used to create XBee and MQTT messages and allow them to access
+ * the same XBee and Mqtt objects throughout the application.
  */
 public class Xbmq {
 
@@ -28,9 +28,10 @@ public class Xbmq {
 
     /**
      * Constructor.
+     *
      * @param xbee The XBeeDevice connected to the local XBee.
      * @param mqtt The MqttAsyncClient connected to the MQTT broker.
-     * @param rootTopic A top-level topic prefixed to all other topics.  Can be 
+     * @param rootTopic A top-level topic prefixed to all other topics. Can be
      * null or empty.
      */
     public Xbmq(XBeeDevice xbee, MqttAsyncClient mqtt, String rootTopic) {
@@ -50,18 +51,19 @@ public class Xbmq {
     }
 
     /**
-     * Access Mqtt subscription and publication topics.  Topics contain
-     * the address of the local XBee and are thereforce specific to each
-     * instance of the gateway.
-     * @return  XbmqTopic object configured for this gateway.
+     * Access Mqtt subscription and publication topics. Topics contain the
+     * address of the local XBee and are thereforce specific to each instance of
+     * the gateway.
+     *
+     * @return XbmqTopic object configured for this gateway.
      */
     public XbmqTopic getTopics() {
         return topics;
     }
 
     /**
-     * Connect to Mqtt broker.  Sets up last-will-and-testament and publishes
-     * an 'online' message as part of the connection process.
+     * Connect to Mqtt broker. Sets up last-will-and-testament and publishes an
+     * 'online' message as part of the connection process.
      *
      * @throws MqttException if connection to MQTT broker fails
      */
@@ -80,30 +82,32 @@ public class Xbmq {
          */
         this.publishMqtt(topics.online(false), new MqttMessage("1".getBytes()));
     }
-    
+
     /**
      * Access the local XBee radio via Digi's XBEE API client.
+     *
      * @return XBeeDevice.
      */
     public XBeeDevice getXBee() {
         return xbee;
     }
-    
+
     /**
-     * Close XBee device and MQTT client. Blocks until MQTT connection is closed
-     * to ensure last will and testament (online=0) is published.  Closes the
-     * XBee serial port connection.
+     * Close XBee device and MQTT client. Blocks until MQTT connection is
+     * closed. Closes the XBee serial port connection.
      *
      * @throws MqttException if Mqtt disconnection fails.
      */
     public void disconnect() throws MqttException {
         xbee.close();
+        this.publishMqtt(topics.online(false), new MqttMessage("0".getBytes()));
         mqtt.disconnect().waitForCompletion();
     }
 
     /**
-     * Publish a message to the MQTT broker.  Asynchronous.  If the MQTT
-     * message cannot be published, an error is sent to the logger.
+     * Publish a message to the MQTT broker. Asynchronous. If the MQTT message
+     * cannot be published, an error is sent to the logger.
+     *
      * @param topic Message topic.
      * @param message Message body.
      * @throws MqttException if the message cannot be published.
@@ -125,10 +129,11 @@ public class Xbmq {
     }
 
     /**
-     * Get a new instance of an XBEE IOSample listener.  This is mainly
-     * to facilitate unit testing.  The XbmqSampleReceiveListener can always
-     * be invoked directly.
-     * @return XbmqSampleReceiveListener.     
+     * Get a new instance of an XBEE IOSample listener. This is mainly to
+     * facilitate unit testing. The XbmqSampleReceiveListener can always be
+     * invoked directly.
+     *
+     * @return XbmqSampleReceiveListener.
      */
     public XbmqSampleReceiveListener sampleListenerFactory() {
         return new XbmqSampleReceiveListener(this);

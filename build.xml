@@ -70,4 +70,23 @@
     nbproject/build-impl.xml file. 
 
     -->
+    
+    <target name="-post-jar">
+        <copy todir="${dist.dir}" overwrite="true">
+            <fileset dir="resources"/>
+        </copy>
+        <copy file="README.md" todir="${dist.dir}" overwrite="true" />
+        <delete file="${dist.dir}/README.TXT" />
+        <chmod perm="+x">
+            <fileset dir="${dist.dir}">
+                <include name="xbmq.sh" />
+                <include name="xbmqd" />                
+            </fileset>
+        </chmod>
+    </target>
+    
+    <include file="rxtx-2.2pre2-bins/rxtx.xml"/>
+    <target name="dist" depends="jar, rxtx.dist-all" />
+    <target name="-post-clean" depends="rxtx.dist-clean" />
+    
 </project>

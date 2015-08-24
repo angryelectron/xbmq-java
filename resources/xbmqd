@@ -1,0 +1,52 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:	  xbmqd
+# Required-Start: $networking
+# Required-Stop: $networking
+# Default-Start:  2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: xbmqd 
+# Description: XBee to MQTT Gateway 
+# X-Interactive: true
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=xbmq
+PIDFILE=/var/run/xbmq.pid
+DAEMON="/path-to/xbmq.sh"
+
+case "$1" in
+	start)
+		log_daemon_msg "Starting xbmq" "$NAME"
+		start-stop-daemon --start --exec $DAEMON -p $PIDFILE -b -m
+		log_end_msg $?
+		;;
+	stop)
+		log_daemon_msg "Stopping xbmq" "$NAME"
+		start-stop-daemon --stop -p $PIDFILE --signal HUP 
+		log_end_msg $?
+		rm -f $PIDFILE
+		;;
+	restart | force-reload)
+		$0 stop && sleep 2 && $0 start
+		;;
+	try-restart)
+		if $0 status >/dev/null; then
+			$0 restart
+		else
+			exit 0
+		fi
+		;;
+	reload)
+		exit 3
+		;;
+	status)
+		status_of_proc $DAEMON "xbmq"
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|try-restart|force-reload|status}"
+		exit 2
+	;;
+esac
