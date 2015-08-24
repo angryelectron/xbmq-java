@@ -47,7 +47,7 @@ public class MqttAtMessageTest {
 
         ArgumentCaptor<MqttMessage> argument = ArgumentCaptor.forClass(MqttMessage.class);
         verify(xbmq).publishMqtt(
-                eq(topics.pubAt(device.toString())),
+                eq(topics.atResponse(device.toString())),
                 argument.capture());
         assertTrue("invalid message payload", Arrays.equals("D0=4".getBytes(), argument.getValue().getPayload()));
     }

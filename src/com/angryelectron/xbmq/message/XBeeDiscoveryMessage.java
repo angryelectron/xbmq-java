@@ -1,11 +1,12 @@
 /*
- * XbmqProvider - XBee / MQTT Gateway 
+ * Xbmq - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 package com.angryelectron.xbmq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
+import com.angryelectron.xbmq.XbmqTopic.Topic;
 import com.angryelectron.xbmq.listener.XbmqDiscoveryListener;
 import com.angryelectron.xbmq.message.MqttDiscoveryMessage.Format;
 import com.digi.xbee.api.RemoteXBeeDevice;
@@ -20,12 +21,17 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Discover the XBee network attached to the gateway.
+ * Perform network-discovery of all XBee devices behind this gateway in response
+ * to an incoming Mqtt message.
  */
 public class XBeeDiscoveryMessage implements XBeeMessage {
 
     private final Xbmq xbmq;
 
+    /**
+     * Constructor.
+     * @param xbmq 
+     */
     public XBeeDiscoveryMessage(Xbmq xbmq) {
         this.xbmq = xbmq;
     }
@@ -38,7 +44,7 @@ public class XBeeDiscoveryMessage implements XBeeMessage {
      */
     @Override
     public boolean subscribesTo(String topic) {
-        return topic.contains(XbmqTopic.DISCOSUBTOPIC);
+        return XbmqTopic.matches(Topic.DISCOSUBTOPIC, topic);
     }
 
     /**

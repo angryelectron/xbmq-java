@@ -65,7 +65,7 @@ public class MqttDiscoveryMessageTest {
 
         ArgumentCaptor<MqttMessage> argument = ArgumentCaptor.forClass(MqttMessage.class);
         verify(xbmq).publishMqtt(
-                eq(topics.pubDiscovery()),
+                eq(topics.discoveryResponse()),
                 argument.capture());
         assertTrue("invalid message payload", Arrays.equals(
                 expectedMessage.getBytes(), 

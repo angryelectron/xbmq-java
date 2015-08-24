@@ -1,5 +1,5 @@
 /*
- * XbmqDefaultProvider - XBee / MQTT Gateway 
+ * Xbmq - XBee / MQTT Gateway 
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 package com.angryelectron.xbmq.message;
@@ -20,21 +20,27 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Relay AT messages transmit via MQTT to an XBee network.
+ * Build and send an XBee AT command from an incoming Mqtt message. If the AT
+ * command returns a value, publish it via {@link MqttAtMessage}.
  */
 public class XBeeAtMessage implements XBeeMessage {
 
     private final Xbmq xbmq;
-    private String parameter;
-    private String response;
+    private String parameter;   //AT command.
+    private String response;    //value returned by AT command.
     private XBee64BitAddress device;
 
+    /**
+     * Constructor.
+     *
+     * @param xbmq
+     */
     public XBeeAtMessage(Xbmq xbmq) {
         this.xbmq = xbmq;
     }
 
     /**
-     * All valid AT commands, according to
+     * Valid AT commands, according to
      * <a href="http://examples.digi.com/wp-content/uploads/2012/07/XBee_ZB_ZigBee_AT_Commands.pdf"
      * >XBee Command Reference Tables</a>
      */
@@ -112,7 +118,7 @@ public class XBeeAtMessage implements XBeeMessage {
             "SP",
             "ST",
             "SO",
-            "WH",            
+            "WH",
             "PO",
             "AT",
             "NR",
@@ -137,28 +143,31 @@ public class XBeeAtMessage implements XBeeMessage {
             "CB3", //etc.
             "CB4" //add more as required                       
     ));
-    
+
     /**
-     * Valid commands that are handled by other topics.
+     * Valid commands that require special handling by topics other than the
+     * AT-request topic.
      */
     final Set<String> reservedCommands = new HashSet<>(Arrays.asList(
             "ND",
             "IS"
     ));
 
+    /**
+     * Pattern used to quickly validate AT commands.
+     */
     private final Pattern pattern = Pattern.compile("([a-zA-Z1%][a-zA-Z0-9\\+][0-9]?)(=(.+))?");
-    
+
     /**
      * Send AT command to XBee. Use to get or set AT parameters.
      *
-     * @param rxb
-     * @param message Valid XBee AT command. Eg. "D0" to get or "D0=4" to set.
-     * The following AT commands are not supported: CB, AT, AP. The following AT
-     * commands are accessed using other topics: ND, IS. Note: Not all AT
-     * commands have been throughly tested.
-     * @throws com.digi.xbee.api.exceptions.XBeeException
-     * @see XBeeDiscoveryMessage
-     * @see XBeeISMessage
+     * @param rxb A RemoteXBeeDevice containing the destination address.
+     * @param message An XBee AT command (eg. AT) or an AT command and value
+     * (eg. AT=value).
+     * @throws com.digi.xbee.api.exceptions.XBeeException if the command cannot
+     * be executed.
+     * @see XBeeDiscoveryMessage for alternate method of sending "ND" commands.
+     * @see XBeeISMessage for alternate method of sending "IS" commands.
      */
     @Override
     public void transmit(RemoteXBeeDevice rxb, MqttMessage message) throws XBeeException {
@@ -169,7 +178,7 @@ public class XBeeAtMessage implements XBeeMessage {
         }
         device = rxb.get64BitAddress();
         parameter = matcher.group(1).toUpperCase();
-        
+
         if (reservedCommands.contains(parameter)) {
             throw new XBeeException(parameter + " is accessed with another topic.");
         } else if (matcher.group(3) == null) {
@@ -199,11 +208,11 @@ public class XBeeAtMessage implements XBeeMessage {
      * @throws XBeeException if the AT parameter cannot be set.
      */
     private void setParameter(RemoteXBeeDevice rxd, String parameter, String value) throws XBeeException {
-        if (atCommands.contains(parameter)) {            
+        if (atCommands.contains(parameter)) {
             if (parameter.equals("NI")) {
                 rxd.setNodeID(value);
             } else {
-                rxd.setParameter(parameter, value.getBytes());        
+                rxd.setParameter(parameter, value.getBytes());
             }
         } else if (executionCommands.contains(parameter)) {
             throw new XBeeException(parameter + " cannot be set.");
@@ -228,7 +237,7 @@ public class XBeeAtMessage implements XBeeMessage {
             } else {
                 return bytesToString(rxd.getParameter(parameter));
             }
-        }else if (executionCommands.contains(parameter)) {
+        } else if (executionCommands.contains(parameter)) {
             switch (parameter) {
                 case "ND":
                     throw new XBeeException("ND must use 'discoveryRequest' topic.");
@@ -243,6 +252,10 @@ public class XBeeAtMessage implements XBeeMessage {
         }
     }
 
+    /**
+     * Publish MQTT message.
+     * @throws MqttException if message cannot be published. 
+     */
     @Override
     public void publish() throws MqttException {
         if ((response != null) && (!response.isEmpty())) {

@@ -25,11 +25,15 @@ the local XBee is in API mode (AP=2).
 MQTT Topics
 ------
 Once the gateway is running, MQTT clients can access the XBee network using the
-following topics and conventions.
+topics below.  Clients can also include com.angryelectron.xbmq.XbmqTopics for 
+easy access to Xmbq topics.
 
 * `rootTopic` - top-level MQTT topic under which all other topics will be created.
+This is an optional, but recommended setting.
 * `gw` - the 64-bit address of the local XBee attached to the gateway.  Eg. 0013A200408DE1FE
 * `xbee` - the 64-bit address of the remote XBee.  Eg. 0013A200408B1F78
+
+Mqtt wildcards (#, +) can also be used.
 
 ### rootTopic/gw/online
 
@@ -41,7 +45,6 @@ Subscribe to receive online status messages.  Messages for this topic are retain
 This is the last will and testament, so online will be 0 if the gateway is not
 running for whatever reason.
 
-
 ### rootTopic/gw/discoveryRequest
 
 Example: example/0013A200408DE1FE/discoveryRequest
@@ -50,7 +53,7 @@ Message: response format.  Supported formats are:  JSON, XML, CSV.  JSON is the
 default and will be used if an invalid format is given.
 
 Publish a message to this topic to initiate the discovery process (ND) on the 
-gateway.  This is an "expensive" request as it can block the gateway for up to
+gateway.  This is an "expensive" request as it will block the gateway for 
 15 seconds, delaying any other incoming requests.
 
 ### rootTopic/gw/discoveryResponse
@@ -68,11 +71,15 @@ results of the discovery.
 
 Example: example/0013A200408DE1FE/0013A200408B1F78/atIn
 
-Message: an AT command, just as it would be entered into a serial terminal.
+Message: an AT command, just as it would be entered into a serial terminal.  For
+a complete list of AT commands, please see the [XBee Command Reference Tables]
+(http://examples.digi.com/wp-content/uploads/2012/07/XBee_ZB_ZigBee_AT_Commands.pdf).
+Note that ND and IS commands, while supported using other topics, cannot be send
+using this topic.
 
 Publish to this topic to get or set AT parameters.  To get a parameter, send the
-2-character command as the message (eg. D0).  To set a parameter, send the
-command and an assigned value (eg. D0=3).
+command as the message (eg. D0).  To set a parameter, send the
+command and an assigned value separated by an equal sign. (eg. D0=3).
 
 ### rootTopic/gw/xbee/atOut
 
@@ -142,5 +149,11 @@ IO pins.  Results are published to the respective IO topics.
 
 Troubleshooting
 ---------------
-See xmbq.log.  Xbmq does not currently provide very good feedback about errors 
-to MQTT clients.
+1. Check `xmbq.log` on the gateway device.  Xbmq does not currently provide very
+good feedback about errors to MQTT clients.
+2. Review the wiki and list of issues on GitHub.
+3. For further help, submit a new issue on GitHub.
+
+About
+-----
+Copyright 2015 Andrew Bythell, abythell@ieee.org.

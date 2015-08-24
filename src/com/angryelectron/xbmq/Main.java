@@ -1,5 +1,6 @@
-/**
- * Xbmq - XBee / MQTT Gateway Copyright 2015 Andrew Bythell, <abythell@ieee.org>
+/*
+ * Xbmq - XBee / MQTT Gateway 
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 package com.angryelectron.xbmq;
 
@@ -22,7 +23,11 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 /**
- * Main entry point for the application
+ * Main entry point for the application.  Parses command line and reads
+ * properties file to determine XBee and MQTT settings.  Connects to XBee
+ * device and MQTT broker.  Sets up listeners for XBee IOSamples and data
+ * packages, as well as MQTT subscriptions.  Sets up a runtime hook to
+ * shutdown when Ctrl-C is pressed.
  */
 public class Main {
 
@@ -76,10 +81,10 @@ public class Main {
          */        
         XbmqTopic t = xbmq.getTopics();
         String[] topics = {
-            t.subAt(),
-            t.subData(),
-            t.subDiscovery(),
-            t.subIOUpdate(null)
+            t.atRequest(),
+            t.dataRequest(),
+            t.discoveryRequest(),
+            t.ioUpdateRequest(null)
         };
         int[] qos = {0, 0, 0, 0};
         

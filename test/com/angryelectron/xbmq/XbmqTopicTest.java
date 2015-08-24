@@ -43,14 +43,28 @@ public class XbmqTopicTest {
     @Test
     public void testGetPubAT() {
         String expectedTopic = "rootTopic/1234567812345678/ABCDABCDABCDABCD/atOut";
-        String actualTopic = topic.pubAt(device);
+        String actualTopic = topic.atResponse(device);
+        assertEquals("topic mismatch", expectedTopic, actualTopic);
+    }
+    
+    @Test
+    public void testGetPubATNullDevice() {
+        String expectedTopic = "rootTopic/1234567812345678/+/atOut";
+        String actualTopic = topic.atResponse(null);
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
     @Test
     public void testGetPubData() {
         String expectedTopic = "rootTopic/1234567812345678/ABCDABCDABCDABCD/dataOut";
-        String actualTopic = topic.pubData(device);
+        String actualTopic = topic.dataResponse(device);
+        assertEquals("topic mismatch", expectedTopic, actualTopic);
+    }
+    
+    @Test
+    public void testGetPubDataNullDevice() {
+        String expectedTopic = "rootTopic/1234567812345678/+/dataOut";
+        String actualTopic = topic.dataResponse(null);
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
@@ -58,35 +72,43 @@ public class XbmqTopicTest {
     public void testGetPubIO() {
         IOLine line = IOLine.DIO0_AD0;
         String expectedTopic = "rootTopic/1234567812345678/ABCDABCDABCDABCD/io/DIO0_AD0";
-        String actualTopic = topic.pubIO(device, line.getName());
+        String actualTopic = topic.ioResponse(device, line.getName());
+        assertEquals("topic mismatch", expectedTopic, actualTopic);
+    }
+    
+    @Test
+    public void testGetPubIONullDevice() {
+        IOLine line = IOLine.DIO0_AD0;
+        String expectedTopic = "rootTopic/1234567812345678/+/io/DIO0_AD0";
+        String actualTopic = topic.ioResponse(null, line.getName());
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
     @Test
     public void testGetPubDiscovery() {
         String expectedTopic = "rootTopic/1234567812345678/discoveryResponse";
-        String actualTopic = topic.pubDiscovery();
+        String actualTopic = topic.discoveryResponse();
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
     @Test
     public void testGetPubOnline() {
         String expectedTopic = "rootTopic/1234567812345678/online";
-        String actualTopic = topic.pubOnline();
+        String actualTopic = topic.online(false);
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
     @Test
     public void testGetSubAT() {
         String expectedTopic = "rootTopic/1234567812345678/+/atIn";
-        String actualTopic = topic.subAt();
+        String actualTopic = topic.atRequest();
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
     @Test
     public void testGetSubData() {
         String expectedTopic = "rootTopic/1234567812345678/+/dataIn";
-        String actualTopic = topic.subData();
+        String actualTopic = topic.dataRequest();
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
@@ -94,14 +116,22 @@ public class XbmqTopicTest {
     public void testGetSubIO() {
         IOLine line = IOLine.DIO0_AD0;
         String expectedTopic = "rootTopic/1234567812345678/ABCDABCDABCDABCD/io/DIO0_AD0";
-        String actualTopic = topic.subIO(device, line.getName());
+        String actualTopic = topic.ioResponse(device, line.getName());
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
     
     @Test
+    public void testGetSubIONullLine() {        
+        String expectedTopic = "rootTopic/1234567812345678/ABCDABCDABCDABCD/io/+";
+        String actualTopic = topic.ioResponse(device, null);
+        assertEquals("topic mismatch", expectedTopic, actualTopic);
+    }
+    
+    
+    @Test
     public void testGetSubIOUpdate() {        
         String expectedTopic = "rootTopic/1234567812345678/ABCDABCDABCDABCD/ioUpdate";
-        String actualTopic = topic.subIOUpdate(device);
+        String actualTopic = topic.ioUpdateRequest(device);
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
     
@@ -109,7 +139,7 @@ public class XbmqTopicTest {
     public void testGetSubIOUpdateBroadcast() {
         IOLine line = IOLine.DIO0_AD0;
         String expectedTopic = "rootTopic/1234567812345678/+/ioUpdate";
-        String actualTopic = topic.subIOUpdate(null);
+        String actualTopic = topic.ioUpdateRequest(null);
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
     
@@ -117,36 +147,36 @@ public class XbmqTopicTest {
     public void testGetSubIOWithBadLine() {
         String line = "DIO1234/PWM3";
         String expectedTopic = "rootTopic/1234567812345678/ABCDABCDABCDABCD/io/DIO0_AD0";
-        String actualTopic = topic.subIO(device, line);
+        String actualTopic = topic.ioResponse(device, line);
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
     @Test
-    public void testGetSubIOBroadcast() {
+    public void testGetSubIONullDevice() {
         IOLine line = IOLine.DIO0_AD0;
         String expectedTopic = "rootTopic/1234567812345678/+/io/DIO0_AD0";
-        String actualTopic = topic.subIO(null, line.getName());
+        String actualTopic = topic.ioResponse(null, line.getName());
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
     @Test
     public void testGetSubDiscovery() {
         String expectedTopic = "rootTopic/1234567812345678/discoveryRequest";
-        String actualTopic = topic.subDiscovery();
+        String actualTopic = topic.discoveryRequest();
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
     @Test
     public void testGetSubOnline() {
         String expectedTopic = "rootTopic/1234567812345678/online";
-        String actualTopic = topic.subOnline(false);
+        String actualTopic = topic.online(false);
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 
     @Test
     public void testGetSubOnlineBroadcast() {
         String expectedTopic = "rootTopic/+/online";
-        String actualTopic = topic.subOnline(true);
+        String actualTopic = topic.online(true);
         assertEquals("topic mismatch", expectedTopic, actualTopic);
     }
 

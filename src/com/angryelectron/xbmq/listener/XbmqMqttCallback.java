@@ -1,5 +1,6 @@
-/**
- * Xbmq - XBee / MQTT Gateway Copyright 2015 Andrew Bythell, <abythell@ieee.org>
+/*
+ * Xbmq - XBee / MQTT Gateway 
+ * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
 package com.angryelectron.xbmq.listener;
 
@@ -11,7 +12,6 @@ import com.angryelectron.xbmq.message.XBeeDataMessage;
 import com.angryelectron.xbmq.message.XBeeISMessage;
 import com.angryelectron.xbmq.message.XBeeMessage;
 import com.digi.xbee.api.RemoteXBeeDevice;
-import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.models.XBee64BitAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +19,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
@@ -30,6 +29,11 @@ public class XbmqMqttCallback implements MqttCallback {
     final private Xbmq xbmq;
     private final ArrayList<XBeeMessage> messageTypes;
 
+    /**
+     * Constructor. Configures a list of all known incoming message types.
+     *
+     * @param xbmq
+     */
     public XbmqMqttCallback(Xbmq xbmq) {
         this.xbmq = xbmq;
         this.messageTypes = new ArrayList<>(
@@ -54,8 +58,7 @@ public class XbmqMqttCallback implements MqttCallback {
     /**
      * Handle messages from subscribed topics.
      *
-     * Note from docs: "If an implementation of this method throws an exception,
-     * then the client will be shutdown".
+     *
      *
      * @param topic MQTT topic
      * @param mm MQTT message
@@ -64,10 +67,10 @@ public class XbmqMqttCallback implements MqttCallback {
     @Override
     public void messageArrived(String topic, MqttMessage mm) throws Exception {
         RemoteXBeeDevice device;
-        
+
         /**
-         * Get device address.  If the request is for the gateway, pass 
-         * null as the address.
+         * Get device address. If the request is for the gateway, pass null as
+         * the address.
          */
         try {
             XBee64BitAddress address = new XBee64BitAddress(XbmqTopic.parseAddress(topic));
@@ -75,8 +78,8 @@ public class XbmqMqttCallback implements MqttCallback {
         } catch (IllegalArgumentException ex) {
             device = null;
         }
-        
-        try {            
+
+        try {
             for (XBeeMessage m : messageTypes) {
                 if (m.subscribesTo(topic)) {
                     m.transmit(device, mm);
@@ -84,6 +87,10 @@ public class XbmqMqttCallback implements MqttCallback {
                 }
             }
         } catch (Exception ex) {
+            /**
+             * Use such a broad exception since, "If an implementation of this method throws an
+             * exception, then the client will be shutdown" (from Paho javadocs).             
+             */
             //TODO: need to report errors to MQTT client
             Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
         }
@@ -96,7 +103,9 @@ public class XbmqMqttCallback implements MqttCallback {
      */
     @Override
     public void deliveryComplete(IMqttDeliveryToken imdt) {
-        //throw new UnsupportedOperationException("Not supported yet.");
+        /**
+         * OK to ignore this since we are using Qos=0.
+         */
     }
 
 }

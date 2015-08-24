@@ -1,8 +1,7 @@
-/**
+/*
  * Xbmq - XBee / MQTT Gateway
  * Copyright 2015 Andrew Bythell, <abythell@ieee.org>
  */
-
 package com.angryelectron.xbmq.listener;
 
 import com.angryelectron.xbmq.Xbmq;
@@ -17,8 +16,8 @@ import org.apache.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 /**
- * Collect responses from remote devices during the network discovery 
- * process. 
+ * Collect responses from remote devices during the network discovery process
+ * and publish the result as an Mqtt message.
  */
 public class XbmqDiscoveryListener implements IDiscoveryListener {
 
@@ -28,6 +27,7 @@ public class XbmqDiscoveryListener implements IDiscoveryListener {
 
     /**
      * Constructor.
+     *
      * @param xbmq
      * @param format The format used for the discovery response.
      */
@@ -39,6 +39,7 @@ public class XbmqDiscoveryListener implements IDiscoveryListener {
 
     /**
      * Called when a new device is discovered.
+     *
      * @param rxbd The newly discovered device.
      */
     @Override
@@ -48,6 +49,7 @@ public class XbmqDiscoveryListener implements IDiscoveryListener {
 
     /**
      * Called when an error occurs during discovery.
+     *
      * @param error The error message.
      */
     @Override
@@ -57,12 +59,13 @@ public class XbmqDiscoveryListener implements IDiscoveryListener {
 
     /**
      * Called when the discovery process is complete.
+     *
      * @param error null unless and error has occurred.
      */
     @Override
     public void discoveryFinished(String error) {
-        MqttDiscoveryMessage message = new MqttDiscoveryMessage(xbmq);        
-        try {        
+        MqttDiscoveryMessage message = new MqttDiscoveryMessage(xbmq);
+        try {
             message.send(devices, format);
         } catch (MqttException ex) {
             Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
