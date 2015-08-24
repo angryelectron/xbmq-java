@@ -6,7 +6,7 @@ package com.angryelectron.xbmq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
-import com.angryelectron.xbmq.XbmqUtils;
+import com.angryelectron.xbmq.XbmqTopic.Topic;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.models.XBee64BitAddress;
@@ -187,7 +187,7 @@ public class XBeeAtMessage implements XBeeMessage {
      */
     @Override
     public boolean subscribesTo(String topic) {
-        return topic.contains(XbmqTopic.ATSUBTOPIC);
+        return XbmqTopic.matches(Topic.ATSUBTOPIC, topic);
     }
 
     /**
@@ -226,7 +226,7 @@ public class XBeeAtMessage implements XBeeMessage {
                 rxd.readDeviceInfo();
                 return rxd.getNodeID();
             } else {
-                return XbmqUtils.bytesToString(rxd.getParameter(parameter));
+                return bytesToString(rxd.getParameter(parameter));
             }
         }else if (executionCommands.contains(parameter)) {
             switch (parameter) {
@@ -249,6 +249,14 @@ public class XBeeAtMessage implements XBeeMessage {
             MqttAtMessage msg = new MqttAtMessage(xbmq);
             msg.send(device, parameter, response);
         }
+    }
+    
+    private String bytesToString(byte[] bytes) {
+        StringBuilder builder = new StringBuilder();
+        for (Byte b : bytes) {
+            builder.append(String.format("%02x", b));
+        }
+        return builder.toString();
     }
 
 }
