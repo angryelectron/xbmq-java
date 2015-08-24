@@ -23,8 +23,8 @@ act as the gateway.
 2. Java 7 runtime.
 3. An XBee device in API mode (AP=2) connected to the gateway by direct UART 
 connection or by serial port adapter.
-4. One or more additional XBee devices with the same network/pan ID as the
-gateway XBee.
+4. One or more additional XBee devices in API mode (AP=2) and  the same 
+network/pan ID as the gateway XBee.
 
 Installation
 ------------

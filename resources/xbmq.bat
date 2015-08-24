@@ -1,2 +1,2 @@
 @echo off
-java -jar gatecli.jar %*
+java -jar xbmq.jar %*
