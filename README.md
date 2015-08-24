@@ -16,8 +16,8 @@ Get a list of all nodes on the network in a JSON-list by subscribing to
 'rootTopic/64bit-gateway-address/discoveryResponse', then sending "JSON" to
 'rootTopic/64bit-gateway-address/discoveryRequest'
 
-Requirements
---------
+###Requirements
+
 1. Java-enabled computer or embedded device with a serial port and networking to
 act as the gateway.
 2. Java 7 runtime.
@@ -36,6 +36,9 @@ Installation
 2. Change to the xbmq-[platform] directory.
 3. Edit xbmq.properties (see Configuration below).
 4. Run xbmq.sh (Linux/Mac, may need to chmod +x first) or xbmq.bat (Windows).
+
+Some systems may require a separate install of the RXTX library.  On Debian-based
+systems, try 'apt-get librxtx-java'.
 
 An initscript is also provided to allow Debian (and similar) distros to start
 xbmq automatically on boot. To use:
@@ -64,7 +67,7 @@ Usage
 ------
 Once the gateway is running, MQTT clients can access the XBee network using the
 topics below.  Java clients can include com.angryelectron.xbmq.XbmqTopics for 
-easy access to Xmbq topics.
+easy access to Xbmq topics.
 
 Note the following conventions used when describing topics:
 
@@ -200,11 +203,17 @@ issues](https://github.com/angryelectron/xbmq/issues) on [GitHub]
 Developers
 ----------
 xbmq is built using the Netbeans IDE but can be built simply with Java 7 SDK and
-Apache Ant.  Simply open xbmq as a Netbeans project to build, or run 'ant' from
+Apache Ant.  Open xbmq as a Netbeans project to build, or run 'ant' from
 the command line.
 
-To build a distribution archive, run 'ant dist'.  Distribution archives include
-a sample properties file, this README, and RXTX native libraries.
+Other useful Ant targets, which can be run from netbeans or the command line:
+
+* javadoc - Use Netbeans to Generate Javadocs or see dist/javadoc for helpul explanations of 
+the classes and methods that make up xbmq.
+
+* dist - build distribution archives for all supported architectures. 
+Distribution archives include a sample properties file, this README, and RXTX 
+native libraries.
 
 Contributions to the xbmq project are welcome and can be submitted by using the 
 [ol' fork-n-pull](https://help.github.com/articles/using-pull-requests/).
