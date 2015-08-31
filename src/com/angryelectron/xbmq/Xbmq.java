@@ -80,7 +80,9 @@ public class Xbmq {
         /**
          * Set online status.
          */
-        this.publishMqtt(topics.online(false), new MqttMessage("1".getBytes()));
+        MqttMessage onlineMessage = new MqttMessage("1".getBytes());
+        onlineMessage.setRetained(true);
+        this.publishMqtt(topics.online(false), onlineMessage);
     }
 
     /**
