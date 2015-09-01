@@ -101,8 +101,15 @@ public class Xbmq {
      * @throws MqttException if Mqtt disconnection fails.
      */
     public void disconnect() throws MqttException {
-        xbee.close();
-        this.publishMqtt(topics.online(false), new MqttMessage("0".getBytes()));
+        xbee.close();        
+        
+        /**
+         * Set offline status.
+         */
+        MqttMessage onlineMessage = new MqttMessage("0".getBytes());
+        onlineMessage.setRetained(true);
+        this.publishMqtt(topics.online(false), onlineMessage);
+                
         mqtt.disconnect().waitForCompletion();
     }
 
