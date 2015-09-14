@@ -34,8 +34,7 @@ public class MqttIOMessage {
      * @throws MqttException if message cannot be published.
      */
     public void send(XBee64BitAddress address, IOLine line, Integer value) throws MqttException {
-        MqttMessage message = new MqttMessage(value.toString().getBytes());
-        message.setRetained(true);
+        MqttMessage message = new MqttMessage(value.toString().getBytes());        
         String topic = xbmq.getTopics().ioResponse(address.toString(), line.getName());
         xbmq.publishMqtt(topic, message);
     }
