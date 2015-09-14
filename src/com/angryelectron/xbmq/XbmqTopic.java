@@ -129,7 +129,7 @@ public class XbmqTopic {
         }
 
         if (gw.matches("[0-9a-fA-F]{16}")) {
-            this.gw = gw;
+            this.gw = gw.toUpperCase();
         } else {
             throw new IllegalArgumentException("Gateway must be 64-bit XBee address");
         }
