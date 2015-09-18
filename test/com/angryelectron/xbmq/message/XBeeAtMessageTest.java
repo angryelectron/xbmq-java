@@ -5,12 +5,12 @@
  */
 package com.angryelectron.xbmq.message;
 
-import com.angryelectron.xbmq.message.XBeeAtMessage;
 import com.angryelectron.xbmq.Xbmq;
 import com.digi.xbee.api.RemoteXBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
@@ -44,9 +44,34 @@ public class XBeeAtMessageTest {
 
     @Test
     public void testSendSetParameter() throws Exception {
-        MqttMessage msg = new MqttMessage("D0=4".getBytes());        
+        MqttMessage msg = new MqttMessage("D0=AB12".getBytes());        
         message.transmit(rxb, msg);
-        verify(rxb).setParameter("D0", "4".getBytes());
+        byte[] expectedValue = {(byte)0xAB, (byte)0x12};
+        verify(rxb).setParameter("D0", expectedValue);
+    }
+    
+    @Test
+    public void testSendSetParameterZero() throws Exception {
+        MqttMessage msg = new MqttMessage("D0=00".getBytes());        
+        message.transmit(rxb, msg);
+        byte[] expectedValue = {(byte)0};
+        verify(rxb).setParameter("D0", expectedValue);
+    }
+    
+    @Test
+    public void testSendSetParameterHex() throws Exception {
+        MqttMessage msg = new MqttMessage("D0=0xAB12".getBytes());        
+        message.transmit(rxb, msg);
+        byte[] expectedValue = {(byte)0xAB, (byte)0x12};
+        verify(rxb).setParameter("D0", expectedValue);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testSendSetParameterInvalid() throws Exception {
+        MqttMessage msg = new MqttMessage("D0=123".getBytes());        
+        message.transmit(rxb, msg);
+        //byte[] expectedValue = {(byte)0xAB, (byte)0x12};
+        //verify(rxb).setParameter("D0", expectedValue);
     }
     
     @Test(expected = XBeeException.class)
@@ -90,13 +115,14 @@ public class XBeeAtMessageTest {
     @Test
     public void testSendSetAllValidATCommands() throws Exception {
         for (String parameter : message.atCommands) {
-            String cmd = parameter + "=value";
+            String cmd = parameter + "=99FF";
             MqttMessage msg = new MqttMessage(cmd.getBytes());            
             message.transmit(rxb, msg);
             if (parameter.equals("NI")) {
-                verify(rxb).setNodeID("value");
+                verify(rxb).setNodeID("99FF");
             } else {
-                verify(rxb).setParameter(parameter, "value".getBytes());
+                byte[] value = {(byte)0x99, (byte)0xFF};
+                verify(rxb).setParameter(parameter, value);
             }
         }
     }
@@ -143,7 +169,5 @@ public class XBeeAtMessageTest {
         assertTrue(message.subscribesTo("root/ABCDABCDABCDABCD/1234567812345678/atIn"));
         assertFalse(message.subscribesTo("root/ABCDABCDABCDABCD/1234567812345678/badTopic"));
     }
-
-    
     
 }

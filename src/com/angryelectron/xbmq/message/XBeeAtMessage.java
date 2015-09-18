@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.xml.bind.DatatypeConverter;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -207,12 +208,18 @@ public class XBeeAtMessage implements XBeeMessage {
      * @param value parameter value
      * @throws XBeeException if the AT parameter cannot be set.
      */
-    private void setParameter(RemoteXBeeDevice rxd, String parameter, String value) throws XBeeException {
-        if (atCommands.contains(parameter)) {
+    private void setParameter(RemoteXBeeDevice rxd, String parameter, String value) throws XBeeException {        if (atCommands.contains(parameter)) {
             if (parameter.equals("NI")) {
                 rxd.setNodeID(value);
             } else {
-                rxd.setParameter(parameter, value.getBytes());
+                if (value.matches("0[xX].+")) {
+                    value = value.substring(2);
+                }
+                if (value.equals("0")) {
+                    value = "00";
+                }
+                byte[] v = DatatypeConverter.parseHexBinary(value);
+                rxd.setParameter(parameter, v);
             }
         } else if (executionCommands.contains(parameter)) {
             throw new XBeeException(parameter + " cannot be set.");
@@ -235,7 +242,7 @@ public class XBeeAtMessage implements XBeeMessage {
                 rxd.readDeviceInfo();
                 return rxd.getNodeID();
             } else {
-                return bytesToString(rxd.getParameter(parameter));
+                return DatatypeConverter.printHexBinary(rxd.getParameter(parameter));
             }
         } else if (executionCommands.contains(parameter)) {
             switch (parameter) {
@@ -263,13 +270,5 @@ public class XBeeAtMessage implements XBeeMessage {
             msg.send(device, parameter, response);
         }
     }
-    
-    private String bytesToString(byte[] bytes) {
-        StringBuilder builder = new StringBuilder();
-        for (Byte b : bytes) {
-            builder.append(String.format("%02x", b));
-        }
-        return builder.toString();
-    }
-
+        
 }
