@@ -74,7 +74,7 @@ public class Xbmq {
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setWill(topics.online(false), "0".getBytes(), 0, true);
-        options.setCleanSession(true);
+        options.setCleanSession(false);
         mqtt.connect(options).waitForCompletion();
 
         /**
