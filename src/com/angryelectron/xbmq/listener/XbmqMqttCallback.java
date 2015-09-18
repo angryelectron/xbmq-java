@@ -65,7 +65,7 @@ public class XbmqMqttCallback implements MqttCallback {
                 Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
             }
             try {
-                Thread.sleep(5000);
+                Thread.sleep(60000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
             }

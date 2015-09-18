@@ -41,7 +41,7 @@ public class Main {
      * @throws com.digi.xbee.api.exceptions.XBeeException
      * @throws org.eclipse.paho.client.mqttv3.MqttException
      */
-    public static void main(String[] args) throws XBeeException, MqttException {
+    public static void main(String[] args) throws XBeeException, MqttException, InterruptedException {
 
         XbmqConfig config = new XbmqConfig();
         CommandLine cmd = null;
@@ -67,8 +67,8 @@ public class Main {
                 : config.getBroker();
 
         /**
-         * Ensure RXTX knows about non-standard serial ports.
-         * For details see http://angryelectron.com/rxtx-on-raspbian/.
+         * Ensure RXTX knows about non-standard serial ports. For details see
+         * http://angryelectron.com/rxtx-on-raspbian/.
          */
         Properties properties = System.getProperties();
         String currentPorts = properties.getProperty("gnu.io.rxtx.SerialPorts", port);
@@ -83,7 +83,17 @@ public class Main {
         xbee.open();
         MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString());
         final Xbmq xbmq = new Xbmq(xbee, mqtt, rootTopic);
-        xbmq.connectMqtt();
+
+        boolean connected = false;
+        while (!connected) {
+            try {
+                xbmq.connectMqtt();
+                connected = true;
+            } catch (MqttException ex) {
+                Logger.getLogger(Main.class).log(Level.ERROR, ex);
+                Thread.sleep(60000);
+            }
+        }
 
         /**
          * Setup listeners for unsolicited packets from the XBee network.
