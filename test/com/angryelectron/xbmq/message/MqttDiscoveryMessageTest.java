@@ -5,15 +5,16 @@
  */
 package com.angryelectron.xbmq.message;
 
-import com.angryelectron.xbmq.message.MqttDiscoveryMessage;
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
 import com.digi.xbee.api.RemoteXBeeDevice;
+import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.models.XBee64BitAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,6 +71,23 @@ public class MqttDiscoveryMessageTest {
         assertTrue("invalid message payload", Arrays.equals(
                 expectedMessage.getBytes(), 
                 argument.getValue().getPayload()));
+    }
+    
+    @Test
+    public void testToJsonFull() throws XBeeException {
+        RemoteXBeeDevice rxb = mock(RemoteXBeeDevice.class);
+        when(rxb.get64BitAddress()).thenReturn(device);        
+        when(rxb.getNodeID()).thenReturn("NODEID");
+        byte[] bytes = {(byte)0x00, (byte)0xAB};
+        when(rxb.getParameter("DD")).thenReturn(bytes);
+        
+        List<RemoteXBeeDevice> devices = new ArrayList<>();
+        devices.add(rxb);
+        devices.add(rxb);
+        MqttDiscoveryMessage message = new MqttDiscoveryMessage(xbmq);
+        String result = message.toJSONFull(devices);
+        String expected = "{\"devices\":{\"1234567812345678\":{\"ni\":\"NODEID\", \"dd\":\"00AB\"},\"1234567812345678\":{\"ni\":\"NODEID\", \"dd\":\"00AB\"}}}";
+        assertEquals(expected, result);                        
     }
 
 }

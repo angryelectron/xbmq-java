@@ -60,7 +60,7 @@ public class XbmqDiscoveryListener implements IDiscoveryListener {
     /**
      * Called when the discovery process is complete.
      *
-     * @param error null unless and error has occurred.
+     * @param error null unless an error has occurred.
      */
     @Override
     public void discoveryFinished(String error) {

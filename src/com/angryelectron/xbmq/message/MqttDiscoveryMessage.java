@@ -6,7 +6,11 @@ package com.angryelectron.xbmq.message;
 
 import com.angryelectron.xbmq.Xbmq;
 import com.digi.xbee.api.RemoteXBeeDevice;
+import com.digi.xbee.api.exceptions.XBeeException;
 import java.util.List;
+import javax.xml.bind.DatatypeConverter;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -54,7 +58,18 @@ public class MqttDiscoveryMessage {
          * </devices>
          * }
          */
-        XML
+        XML,
+        
+        /**
+         * Returns the address, DD, and NI of each discovered device in
+         * JSON format.
+         * eg. 
+         * {"devices" : [ 
+         *  {"address" : address1, "ni" : ni1, "dd" : dd1},
+         *  {"address" : address2, "ni" : ni2, "dd" : dd2}
+         * ]}
+         */
+        JSONFULL,
     };
 
     /**
@@ -72,6 +87,9 @@ public class MqttDiscoveryMessage {
                 break;
             case XML:
                 message.setPayload(toXML(devices).getBytes());
+                break;
+            case JSONFULL:
+                message.setPayload(toJSONFull(devices).getBytes());
                 break;
             case JSON:
             default:
@@ -100,6 +118,37 @@ public class MqttDiscoveryMessage {
         }
         builder.append("]}");
         return builder.toString();
+    }
+    
+    /**
+     * Build a JSON-formatted list.
+     *
+     * @param devices List of devices to format.
+     * @return JSON.
+     */
+    public String toJSONFull(List<RemoteXBeeDevice> devices) {        
+        StringBuilder builder = new StringBuilder("{\"devices\":{");
+        for (int i=0; i< devices.size(); i++) {
+            builder.append("\"");
+            builder.append(devices.get(i).get64BitAddress());
+            builder.append("\":{\"ni\":\"");
+            builder.append(devices.get(i).getNodeID());
+            builder.append("\", \"dd\":\"");
+            try {
+                byte[] dd = devices.get(i).getParameter("DD");                
+                builder.append(DatatypeConverter.printHexBinary(dd));
+            } catch (XBeeException ex) {
+                Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
+                builder.append("ERROR");
+            }
+            builder.append("\"}");
+            if (i != devices.size() - 1) {
+                builder.append(",");
+            }            
+        }
+        builder.append("}}");
+        return builder.toString();
+        
     }
 
     /**
