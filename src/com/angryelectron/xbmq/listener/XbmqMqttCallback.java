@@ -19,6 +19,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
@@ -46,13 +47,29 @@ public class XbmqMqttCallback implements MqttCallback {
     }
 
     /**
-     * Called when the connection to the MQTT broker is lost.
+     * Called when the connection to the MQTT broker is lost.  Will try to 
+     * reconnect every 5 seconds forever.
      *
      * @param thrwbl ?
      */
     @Override
     public void connectionLost(Throwable thrwbl) {
+        boolean connected = false;
         Logger.getLogger(this.getClass()).log(Level.ERROR, thrwbl);
+        while (!connected) {
+            try {
+                xbmq.connectMqtt();
+                connected = true;
+                Logger.getLogger(this.getClass()).log(Level.INFO, "Connection restored");
+            } catch (MqttException ex) {
+                Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
+            }
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
+            }
+        }
     }
 
     /**
@@ -88,8 +105,9 @@ public class XbmqMqttCallback implements MqttCallback {
             }
         } catch (Exception ex) {
             /**
-             * Use such a broad exception since, "If an implementation of this method throws an
-             * exception, then the client will be shutdown" (from Paho javadocs).             
+             * Use such a broad exception since, "If an implementation of this
+             * method throws an exception, then the client will be shutdown"
+             * (from Paho javadocs).
              */
             //TODO: need to report errors to MQTT client
             Logger.getLogger(this.getClass()).log(Level.ERROR, ex);
