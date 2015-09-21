@@ -116,12 +116,17 @@ public class Main {
         mqtt.setCallback(new XbmqMqttCallback(xbmq));
         mqtt.subscribe(topics, qos);
 
+        Logger.getLogger(Main.class).log(Level.INFO, "Starting XBMQ gateway "
+                + xbmq.getTopics().gwTopic());
+
         /**
          * Add shutdown hooks to stop logger on Ctrl-C.
          */
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
+                Logger.getLogger(Main.class).log(Level.INFO, "Stopping XBMQ gateway "
+                        + xbmq.getTopics().gwTopic());
                 try {
                     xbmq.disconnect();
                 } catch (MqttException ex) {

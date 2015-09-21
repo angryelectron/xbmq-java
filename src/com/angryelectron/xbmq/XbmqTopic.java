@@ -142,7 +142,7 @@ public class XbmqTopic {
      *
      * @return Gateway topic.
      */
-    private String gwTopic() {
+    public String gwTopic() {
         StringBuilder builder = new StringBuilder();
         if (!root.isEmpty()) {
             builder.append(root);
