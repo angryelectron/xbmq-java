@@ -86,7 +86,7 @@ public class MqttDiscoveryMessageTest {
         devices.add(rxb);
         MqttDiscoveryMessage message = new MqttDiscoveryMessage(xbmq);
         String result = message.toJSONFull(devices);
-        String expected = "{\"devices\":{\"1234567812345678\":{\"ni\":\"NODEID\", \"dd\":\"00AB\"},\"1234567812345678\":{\"ni\":\"NODEID\", \"dd\":\"00AB\"}}}";
+        String expected = "{\"devices\":[{\"address\":\"1234567812345678\", \"ni\":\"NODEID\", \"dd\":\"00AB\"}, {\"address\":\"1234567812345678\", \"ni\":\"NODEID\", \"dd\":\"00AB\"}]}";
         assertEquals(expected, result);                        
     }
 

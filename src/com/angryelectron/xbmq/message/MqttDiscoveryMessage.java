@@ -127,11 +127,12 @@ public class MqttDiscoveryMessage {
      * @return JSON.
      */
     public String toJSONFull(List<RemoteXBeeDevice> devices) {        
-        StringBuilder builder = new StringBuilder("{\"devices\":{");
+        StringBuilder builder = new StringBuilder("{\"devices\":[");
         for (int i=0; i< devices.size(); i++) {
+            builder.append("{\"address\":");                        
             builder.append("\"");
             builder.append(devices.get(i).get64BitAddress());
-            builder.append("\":{\"ni\":\"");
+            builder.append("\", \"ni\":\"");
             builder.append(devices.get(i).getNodeID());
             builder.append("\", \"dd\":\"");
             try {
@@ -143,10 +144,10 @@ public class MqttDiscoveryMessage {
             }
             builder.append("\"}");
             if (i != devices.size() - 1) {
-                builder.append(",");
+                builder.append(", ");
             }            
         }
-        builder.append("}}");
+        builder.append("]}");
         return builder.toString();
         
     }
