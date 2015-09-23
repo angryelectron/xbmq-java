@@ -92,12 +92,11 @@ running for whatever reason.
 
 Example: example/0013A200408DE1FE/discoveryRequest
 
-Message: response format.  Supported formats are:  JSON, XML, CSV.  JSON is the
-default and will be used if an invalid format is given.
+Message: response format.  Supported formats are:  JSON, JSONFULL, XML, CSV.  JSON is the
+default and will be used if an invalid format is given.  
 
 Publish a message to this topic to initiate the discovery process (ND) on the 
-gateway.  This is an "expensive" request as it will block the gateway for 
-15 seconds, delaying any other incoming requests.
+gateway.
 
 ### rootTopic/gw/discoveryResponse
 
@@ -105,7 +104,8 @@ Example: example/0013A200408DE1FE/discoveryResponse
 
 Message: A formatted list containing the 64-bit device address of all
 discovered devices.  Format will be JSON, XML, or CSV depending on the message
-used to make the request.
+used to make the request.  JSONFULL will return a list of objects that include
+the address, DD, and NI values for each device found.
 
 Subscribe to this topic prior to publishing a discoveryRequest to receive the
 results of the discovery.
@@ -196,7 +196,7 @@ Troubleshooting
 good feedback about errors to MQTT clients.
 2. Review the [Wiki](https://github.com/angryelectron/xbmq/wiki) and [list of 
 issues](https://github.com/angryelectron/xbmq/issues) on [GitHub]
-(https://github.com/angryelectron).
+(https://github.com/angryelectron/xbmq).
 3. For further help, submit a [new issue]
 (https://github.com/angryelectron/xbmq/issues/new).
 
