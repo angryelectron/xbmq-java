@@ -81,8 +81,16 @@ public class Main {
 
         XBeeDevice xbee = new XBeeDevice(port, Integer.parseInt(baud));
         xbee.open();
-        MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString());
+        MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString());        
         final Xbmq xbmq = new Xbmq(xbee, mqtt, rootTopic);
+        
+        /**
+         * From MqttClient Javadocs:  It is recommended to call 
+         * IMqttClient.setCallback(MqttCallback) prior to connecting in order 
+         * that messages destined for the client can be accepted as soon as the 
+         * client is connected.
+         */
+        mqtt.setCallback(new XbmqMqttCallback(xbmq));
 
         boolean connected = false;
         while (!connected) {
@@ -112,8 +120,7 @@ public class Main {
             t.ioUpdateRequest(null)
         };
         int[] qos = {0, 0, 0, 0};
-
-        mqtt.setCallback(new XbmqMqttCallback(xbmq));
+        
         mqtt.subscribe(topics, qos);
 
         Logger.getLogger(Main.class).log(Level.INFO, "Starting XBMQ gateway "
