@@ -103,7 +103,12 @@ public class XbmqTopic {
         /**
          * Gateway online status.
          */
-        ONLINETOPIC("online");
+        ONLINETOPIC("online"),
+        
+        /**
+         * Logger
+         */
+        LOGTOPIC("log");
 
         private final String value;
 
@@ -343,6 +348,14 @@ public class XbmqTopic {
         } else {
             return gwTopic(ONLINETOPIC.value);
         }
+    }
+    
+    /**
+     * Topic used to publish log messages from the gateway.
+     * @return The gateway's log topic.
+     */
+    public String log() {
+        return gwTopic(LOGTOPIC.value);
     }
 
     /**

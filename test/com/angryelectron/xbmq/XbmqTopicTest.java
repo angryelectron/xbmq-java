@@ -223,5 +223,13 @@ public class XbmqTopicTest {
         String actualAddress = XbmqTopic.parseAddress(subAtTopic);
         assertEquals("invalid address", expectedAddress, actualAddress);
     }
+    
+    @Test
+    public void testLogTopic() {
+        String expected = "rootTopic/1234567812345678/log";
+        String actual = topic.log();
+        assertEquals("topic mismatch", expected, actual);
+    }
+    
         
 }

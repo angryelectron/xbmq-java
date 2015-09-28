@@ -102,6 +102,11 @@ public class Main {
                 Thread.sleep(60000);
             }
         }
+        
+        /**
+         * Log future error messages to MQTT
+         */        
+        Logger.getRootLogger().addAppender(new XbmqAppender(xbmq));
 
         /**
          * Setup listeners for unsolicited packets from the XBee network.
