@@ -5,7 +5,6 @@
  */
 package com.angryelectron.xbmq.message;
 
-import com.angryelectron.xbmq.message.MqttAtMessage;
 import com.angryelectron.xbmq.Xbmq;
 import com.angryelectron.xbmq.XbmqTopic;
 import com.digi.xbee.api.models.XBee64BitAddress;
