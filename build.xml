@@ -81,6 +81,7 @@
             <fileset dir="${dist.dir}">
                 <include name="xbmq.sh" />
                 <include name="xbmqd" />                
+                <include name="xbmq-update.sh" />                
             </fileset>
         </chmod>
     </target>

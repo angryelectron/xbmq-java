@@ -200,6 +200,21 @@ issues](https://github.com/angryelectron/xbmq/issues) on [GitHub]
 3. For further help, submit a [new issue]
 (https://github.com/angryelectron/xbmq/issues/new).
 
+Automatic Updates
+-----------------
+Since an XBMQ gateway device is likely to be installed in a remote location, an
+automatic update facility is provided for Debian-based systems.  To use it:
+
+1. Setup xbmq to run as a service using the xbmqd init script.
+2. Call xbmq-update.sh manually or from a cron job.
+
+If a newer version is found on the update server, it will be downloaded.  The
+xbmqd service will be stopped, the new version installed, and the xbmqd service
+restarted.  
+
+This mechanism will only update xbmq.jar, not any dependent libraries or
+properties files.
+
 Developers
 ----------
 xbmq is built using the Netbeans IDE but can be built simply with Java 7 SDK and
@@ -214,6 +229,15 @@ the classes and methods that make up xbmq.
 * dist - build distribution archives for all supported architectures. 
 Distribution archives include a sample properties file, this README, and RXTX 
 native libraries.
+
+To install a new auto-update version, which can be installed using the xbmq-update.sh
+script:
+
+1. Edit the [autoupdate](https://github.com/angryelectron/xbmq/releases/tag/autoupdate)
+release on GitHub.  The URL of the release must match the URL set in the xbmq-update.sh
+script.
+2. Upload the latest version of xbmq.jar.
+3. Edit and upload version.txt
 
 Contributions to the xbmq project are welcome and can be submitted by using the 
 [ol' fork-n-pull](https://help.github.com/articles/using-pull-requests/).
