@@ -37,6 +37,8 @@ fi
 if curl -s -L $src$jar -o /tmp/$jar; then
 	service xbmqd stop
 	cp /tmp/$jar $dir/$jar
-	mv /tmp/latest.txt /tmp/version.txt
+	if [ -e /tmp/latest.txt ]; then
+		mv /tmp/latest.txt /tmp/version.txt
+	fi
 	service xbmqd start
 fi
