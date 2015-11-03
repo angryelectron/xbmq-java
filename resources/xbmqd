@@ -15,7 +15,11 @@
 
 NAME=xbmq
 PIDFILE=/var/run/xbmq.pid
-DAEMON="/path-to/xbmq.sh"
+
+#
+# Change this path if XBMQ is installed somewhere other than /opt/xbmq
+#
+DAEMON="/opt/xbmq/xbmq.sh"
 
 case "$1" in
 	start)
