@@ -4,6 +4,8 @@ Xbmq is a gateway between an XBee network and MQTT.  Discover, monitor IO, read
 and write data, get and set AT parameters of any XBee device on a network 
 by publishing and subscribing to MQTT messages.
 
+There is also a Node.js project, [xbmq-js](https://github.com/angryelectron/xbmq-js), which is lighter on resources and recommended for use instead of this project.
+
 ### Examples
 
 To configure D0 as an input, publish "D0=3" to 
