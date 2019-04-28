@@ -5,6 +5,7 @@ package com.angryelectron.xbmq;
 
 import com.angryelectron.xbmq.listener.XbmqSampleReceiveListener;
 import com.digi.xbee.api.XBeeDevice;
+import java.util.Optional;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -25,6 +26,8 @@ public class Xbmq {
     private final MqttAsyncClient mqtt;
     private String rootTopic = "";
     private final XbmqTopic topics;
+    private final Optional<String> username;
+    private final Optional<String> password;
 
     /**
      * Constructor.
@@ -33,8 +36,10 @@ public class Xbmq {
      * @param mqtt The MqttAsyncClient connected to the MQTT broker.
      * @param rootTopic A top-level topic prefixed to all other topics. Can be
      * null or empty.
+     * @param username The username for connection to the MQTT broker
+     * @param password The password for connection to the MQTT broker
      */
-    public Xbmq(XBeeDevice xbee, MqttAsyncClient mqtt, String rootTopic) {
+    public Xbmq(XBeeDevice xbee, MqttAsyncClient mqtt, String rootTopic, Optional<String> username, Optional<String> password) {
         if ((mqtt == null) || (xbee == null)) {
             throw new IllegalArgumentException("XBee and/or Mqtt cannot be null.");
         }
@@ -44,10 +49,15 @@ public class Xbmq {
         if ((mqtt.getClientId() == null) || (mqtt.getClientId().isEmpty())) {
             throw new IllegalArgumentException("Mqtt requires clientID.");
         }
+        if (username.isPresent() != password.isPresent()) {
+            throw new IllegalArgumentException("Username and password must both be excluded or passed");
+        }
         this.xbee = xbee;
         this.mqtt = mqtt;
         this.rootTopic = rootTopic;
         this.topics = new XbmqTopic(rootTopic, mqtt.getClientId());
+        this.username = username;
+        this.password = password;
     }
 
     /**
@@ -75,6 +85,10 @@ public class Xbmq {
         MqttConnectOptions options = new MqttConnectOptions();
         options.setWill(topics.online(false), "0".getBytes(), 0, true);
         options.setCleanSession(false);
+        if (username.isPresent() && password.isPresent()) {
+            options.setUserName(username.get());
+            options.setPassword(password.get().toCharArray());
+        }
         mqtt.connect(options).waitForCompletion();
 
         /**

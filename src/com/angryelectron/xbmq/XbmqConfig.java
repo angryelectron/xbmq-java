@@ -6,6 +6,7 @@ package com.angryelectron.xbmq;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Properties;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -24,11 +25,15 @@ public class XbmqConfig {
     final String BAUD = "baud";
     final String TOPIC = "rootTopic";
     final String BROKER = "broker";
+    final String USERNAME = "username";
+    final String PASSWORD = "password";
 
     final String PORT_DEFAULT = "/dev/ttyUSB0";
     final String BAUD_DEFAULT = "9600";
     final String TOPIC_DEFAULT = "";
     final String BROKER_DEFAULT = "tcp://test.mosquitto.org:1883";
+    final Optional<String> USERNAME_DEFAULT = Optional.empty();
+    final Optional<String> PASSWORD_DEFAULT = Optional.empty();
 
     /**
      * Constructor. Loads properties from xbmq.properties.
@@ -101,5 +106,27 @@ public class XbmqConfig {
     public String getBroker() {
         String broker = properties.getProperty(BROKER, BROKER_DEFAULT);
         return broker.trim();
+    }
+
+    /**
+     * Get the username to connect to the MQTT broker.
+     *
+     * @return Username or Optional.empty() if not present.
+     */
+    public Optional<String> getUsername() {
+        Optional<String> username = Optional.ofNullable(properties.getProperty(USERNAME))
+                .map(v -> v.trim());
+        return username;
+    }
+
+    /**
+     * Get the password to connect to the MQTT broker.
+     *
+     * @return Password or Optional.empty() if not present.
+     */
+    public Optional<String> getPassword() {
+        Optional<String> password = Optional.ofNullable(properties.getProperty(PASSWORD))
+                .map(v -> v.trim());
+        return password;
     }
 }

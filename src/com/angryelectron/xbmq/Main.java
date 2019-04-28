@@ -10,6 +10,7 @@ import com.angryelectron.xbmq.listener.XbmqMqttCallback;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import java.io.File;
+import java.util.Optional;
 import java.util.Properties;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -65,6 +66,10 @@ public class Main {
                 : config.getRootTopic();
         String broker = (cmd.hasOption("u")) ? cmd.getOptionValue("u")
                 : config.getBroker();
+        Optional<String> username = (cmd.hasOption("n")) ? Optional.of(cmd.getOptionValue("n"))
+                : config.getUsername();
+        Optional<String> password = (cmd.hasOption("p")) ? Optional.of(cmd.getOptionValue("p"))
+                : config.getPassword();
 
         /**
          * Ensure RXTX knows about non-standard serial ports. For details see
@@ -81,8 +86,8 @@ public class Main {
 
         XBeeDevice xbee = new XBeeDevice(port, Integer.parseInt(baud));
         xbee.open();
-        MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString());        
-        final Xbmq xbmq = new Xbmq(xbee, mqtt, rootTopic);
+        MqttAsyncClient mqtt = new MqttAsyncClient(broker, xbee.get64BitAddress().toString());
+        final Xbmq xbmq = new Xbmq(xbee, mqtt, rootTopic, username, password);
         
         /**
          * From MqttClient Javadocs:  It is recommended to call 
@@ -164,6 +169,12 @@ public class Main {
         Option broker = OptionBuilder.withArgName("broker").hasArg()
                 .withDescription("Mqtt broker").create("u");
         options.addOption(broker);
+        Option username = OptionBuilder.withArgName("username").hasArg()
+                .withDescription("Mqtt username").create("n");
+        options.addOption(username);
+        Option password = OptionBuilder.withArgName("password").hasArg()
+                .withDescription("Mqtt password").create("p");
+        options.addOption(password);
         return options;
     }
 

@@ -7,6 +7,7 @@ package com.angryelectron.xbmq;
 
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.models.XBee64BitAddress;
+import java.util.Optional;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -48,31 +49,31 @@ public class XbmqTest {
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorRequiresValidMqtt() throws Exception {        
         mqtt = null;
-        Xbmq xbmq = new Xbmq(xbee, mqtt, null);        
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null, Optional.empty(), Optional.empty());        
     }            
     
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorRequiresValidXBee() throws Exception {
         xbee = null;
-        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null, Optional.empty(), Optional.empty());
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorRequiresOpenXBee() throws Exception {
         when(xbee.isOpen()).thenReturn(false);
-        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null, Optional.empty(), Optional.empty());
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorRequiresClientId() {
         when(mqtt.getClientId()).thenReturn(null);
-        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null, Optional.empty(), Optional.empty());
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorClientIdNotEmpty() {
         when(mqtt.getClientId()).thenReturn("");
-        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null, Optional.empty(), Optional.empty());
     }
             
     @Test
@@ -81,7 +82,7 @@ public class XbmqTest {
         when(mqtt.connect((MqttConnectOptions) anyObject())).thenReturn(token);
         doNothing().when(token).waitForCompletion();        
         
-        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null, Optional.empty(), Optional.empty());
         xbmq.connectMqtt();
         verify(mqtt).connect((MqttConnectOptions) anyObject());        
     }
@@ -99,7 +100,7 @@ public class XbmqTest {
         when(mqtt.disconnect()).thenReturn(token);
         doNothing().when(token).waitForCompletion();   
         
-        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null, Optional.empty(), Optional.empty());
         xbmq.connectMqtt();
         xbmq.disconnect();
     }
@@ -110,7 +111,7 @@ public class XbmqTest {
         when(mqtt.disconnect()).thenReturn(token);
         doNothing().when(token).waitForCompletion();   
         
-        Xbmq xbmq = new Xbmq(xbee, mqtt, null);        
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null, Optional.empty(), Optional.empty());        
         when(xbee.isOpen()).thenReturn(false);
         when(mqtt.isConnected()).thenReturn(false);
         xbmq.disconnect();
@@ -123,7 +124,7 @@ public class XbmqTest {
         when(mqtt.connect((MqttConnectOptions) anyObject())).thenReturn(token);
         doNothing().when(token).waitForCompletion();   
         
-        Xbmq xbmq = new Xbmq(xbee, mqtt, null);
+        Xbmq xbmq = new Xbmq(xbee, mqtt, null, Optional.empty(), Optional.empty());
         xbmq.disconnect();                
     }             
         
