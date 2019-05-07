@@ -4,7 +4,8 @@ Xbmq is a gateway between an XBee network and MQTT.  Discover, monitor IO, read
 and write data, get and set AT parameters of any XBee device on a network 
 by publishing and subscribing to MQTT messages.
 
-There is also a Node.js project, [xbmq-js](https://github.com/angryelectron/xbmq-js), which is lighter on resources and recommended for use instead of this project.
+There is also a Node.js project, [xbmq-js](https://github.com/angryelectron/xbmq-js), 
+which is lighter on resources and recommended for use instead of this project.
 
 ### Examples
 
@@ -22,7 +23,7 @@ Get a list of all nodes on the network in a JSON-list by subscribing to
 
 1. Java-enabled computer or embedded device with a serial port and networking to
 act as the gateway.
-2. Java 7 runtime.
+2. Java 8 runtime.
 3. An XBee device in API mode (AP=2) connected to the gateway by direct UART 
 connection or by serial port adapter.
 4. One or more additional XBee devices in API mode (AP=2) and  the same 
@@ -219,7 +220,7 @@ properties files.
 
 Developers
 ----------
-xbmq is built using the Netbeans IDE but can be built simply with Java 7 SDK and
+xbmq is built using the Netbeans IDE but can be built simply with Java 8 SDK and
 Apache Ant.  Open xbmq as a Netbeans project to build, or run 'ant' from
 the command line.
 
